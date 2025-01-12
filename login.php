@@ -1,51 +1,71 @@
 <?php
-// Start the session
 session_start();
-
-// Include the database connection
 include 'includes/db.php';
 
-// Check if the form was submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
-
-    // Check for empty fields
-    if (empty($username) || empty($password)) {
-        die("Please fill in all fields.");
-    }
-
-    // Fetch the user from the database
-    $sql = "SELECT * FROM users WHERE username = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Verify the user exists
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-
-        // Verify the password
-        if (password_verify($password, $user['password'])) {
-            // Password is correct, start the session
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-
-            // Redirect to the dashboard
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            echo "Invalid password.";
-        }
-    } else {
-        echo "User not found.";
-    }
-
-    $stmt->close();
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit;
 }
 
-// Close the database connection
-$conn->close();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usernameOrFaculty = $_POST['username_or_faculty'];
+    $password          = $_POST['password'];
+    
+    if (!empty($usernameOrFaculty) && !empty($password)) {
+        $sql  = "SELECT * FROM users WHERE username = ? OR faculty_number = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $usernameOrFaculty, $usernameOrFaculty);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role']    = $user['role'];
+                header("Location: dashboard.php");
+                exit;
+            } else {
+                $error = "Invalid password.";
+            }
+        } else {
+            $error = "User not found.";
+        }
+        $stmt->close();
+    } else {
+        $error = "Please fill in both fields.";
+    }
+}
 ?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+<h1>Login</h1>
+
+<?php
+if (isset($_GET['registered'])) {
+    echo "<p style='color:green;'>Registration successful, please login.</p>";
+}
+if (!empty($error)) {
+    echo "<p style='color:red;'>$error</p>";
+}
+?>
+
+<form method="post">
+    <label>Username or Faculty Number</label><br>
+    <input type="text" name="username_or_faculty" required><br><br>
+
+    <label>Password</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Login</button>
+</form>
+
+<p>Don't have an account yet? <a href="register.php">Click here to register</a>.</p>
+<p><a href="index.php">Back to Home</a></p>
+</body>
+</html>

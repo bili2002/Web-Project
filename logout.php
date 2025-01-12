@@ -1,12 +1,11 @@
 <?php
-// Start the session
 session_start();
 
-// Destroy the session
+// Remove all session data
 session_unset();
+// Destroy the session
 session_destroy();
 
-// Redirect to the login page
-header("Location: index.php");
-exit();
-?>
+// Redirect to login or homepage
+header("Location: login.php");
+exit;
