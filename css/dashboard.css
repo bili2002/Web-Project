@@ -1,0 +1,184 @@
+/* Общи стилове */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* Светлосиво за фон */
+    color: #4a4a4a; /* Кафяво-сив за текст */
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+header {
+    display: none;
+}
+
+h1 {
+    font-size: 2.5em;
+    color: #FF7F50; /* Оранжево */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Основно съдържание */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Формуляр за създаване на отбор */
+form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border-left: 5px solid #8B4513; /* Кафява линия отляво */
+}
+
+form label {
+    font-size: 1.1em;
+    color: #8B4513; /* Кафяв текст */
+    margin-bottom: 10px;
+    display: block;
+}
+
+form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 90%;
+    font-size: 1em;
+    margin-bottom: 15px;
+    background-color: #faf3e0; /* Светлокафяво */
+    text-align: center;
+}
+
+form button {
+    background-color: #FF7F50; /* Оранжево */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+form button:hover {
+    background-color: #8B4513; /* Тъмно кафяво при hover */
+}
+
+/* Лист със съществуващи отбори */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центриране на списъка */
+}
+
+ul li {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-left: 5px solid #FF7F50; /* Оранжева линия отляво */
+    padding: 20px; /* Увеличено разстояние */
+    margin-bottom: 15px; /* По-голямо разстояние между елементите */
+    border-radius: 8px; /* Заоблени ъгли */
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 200%; /* Увеличена ширина */
+}
+
+ul li strong {
+    color: #4a4a4a;
+    font-size: 1.2em; /* Увеличен размер на текста */
+}
+
+ul li a {
+    color: #FF7F50;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    font-size: 1.1em; /* По-голям размер на линковете */
+}
+
+ul li a:hover {
+    color: #8B4513;
+}
+
+/* Навигация */
+footer a {
+    color: #FF7F50;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 10px;
+}
+
+footer a:hover {
+    color: #8B4513;
+}
+
+p a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #FF7F50; /* Оранжево */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+p a:hover{
+    background-color: #8B4513; /* Кафяво */
+    color: white;
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+
+
+/* Секция за основни линкове */
+#basic-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#basic-links a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #FF7F50; /* Оранжево */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#basic-links a:hover {
+    background-color: #8B4513; /* Тъмно кафяво */
+    color: white;
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+}

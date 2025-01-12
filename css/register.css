@@ -3,8 +3,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #8A2BE2, #FF7F50);
-    color: white;
+    background-color: #f4f4f4; /* Светлосиво за фон */
+    color: #4a4a4a; /* Кафяво-сив за текст */
     text-align: center;
     min-height: 100vh;
     display: flex;
@@ -19,7 +19,8 @@ header {
 
 h1 {
     font-size: 2.5em;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    color: #FF7F50; /* Оранжево */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 main {
@@ -30,13 +31,14 @@ main {
 }
 
 section {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: white; /* Бял фон за секцията */
     padding: 30px;
     border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
     text-align: center;
+    border-left: 5px solid #8B4513; /* Кафява линия отляво */
 }
 
 fieldset {
@@ -48,7 +50,7 @@ fieldset {
 legend {
     font-size: 1.5em;
     font-weight: bold;
-    color: white;
+    color: #FF7F50; /* Оранжево */
     margin-bottom: 15px;
 }
 
@@ -62,24 +64,25 @@ form {
 
 input[type="text"], input[type="password"], input[type="email"] {
     padding: 10px;
-    border: none;
+    border: 1px solid #ddd; /* Сива граница */
     border-radius: 5px;
-    width: 90%; /* Центрирано със задаване на ширина по-малка от формата */
+    width: 90%;
     font-size: 1em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     margin-bottom: 15px;
-    /* text-align: center; Центрира текстовете вътре в полетата */
+    /* text-align: center; */
+    background-color: #faf3e0; /* Светлокафяво */
 }
 
 input[type="text"]::placeholder,
 input[type="password"]::placeholder,
 input[type="email"]::placeholder {
-    color: #ccc;
+    color: #aaa; /* Светлосив текст */
     font-size: 0.9em;
 }
 
 button {
-    background-color: #FF7F50;
+    background-color: #FF7F50; /* Оранжево */
     color: white;
     padding: 10px 20px;
     border: none;
@@ -92,20 +95,19 @@ button {
 }
 
 button:hover {
-    background-color: #FF4500;
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    background-color: #8B4513; /* Тъмно кафяво при hover */
+    color: white;
 }
 
 /* Линкове */
 a {
-    color: white;
+    color: #FF7F50; /* Оранжево */
     text-decoration: none;
     font-weight: bold;
-    transition: color 0.3s ease;
 }
 
 a:hover {
-    color: wheat;
+    color: #8B4513; /* Кафяво при hover */
 }
 
 footer {

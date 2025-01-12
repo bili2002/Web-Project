@@ -61,6 +61,8 @@ if ($result) {
 <html>
 <head>
     <title>Teams</title>
+    <link rel="stylesheet" type="text/css" href="../../css/teams.css">
+
 </head>
 <body>
 <h1>Teams</h1>

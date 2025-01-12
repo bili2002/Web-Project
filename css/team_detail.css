@@ -1,0 +1,200 @@
+/* Общи стилове */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* Светлосиво за фон */
+    color: #4a4a4a; /* Кафяво-сив за текст */
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+/* Контейнер за детайлите на екипа */
+.team-container {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    /* background-color: white; */
+    border-radius: 10px;
+    /* box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); */
+    margin: 20px auto;
+    text-align: center;
+}
+
+/* Заглавие на страницата */
+.team-header h1 {
+    font-size: 2em;
+    color: #FF7F50; /* Оранжево */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Карта на екипа */
+.team-card {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #faf3e0; /* Светло кафяво */
+    text-align: left;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* .team-card:hover {
+    background-color: #FFEFDB; 
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+} */
+
+/* Заглавие на картата */
+.team-card h2 {
+    font-size: 1.5em;
+    color: #8B4513; /* Тъмно кафяво */
+    margin-bottom: 10px;
+}
+
+/* Текст в картата */
+.team-card p {
+    font-size: 1em;
+    color: #4a4a4a;
+    margin: 5px 0;
+}
+
+/* Удебелен текст */
+.team-card strong {
+    color: #FF7F50; /* Оранжево */
+}
+
+header {
+    display: none;
+}
+
+h1 {
+    font-size: 2.5em;
+    color: #FF7F50; /* Оранжево */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Основно съдържание */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Формуляр за създаване на отбор */
+form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border-left: 5px solid #8B4513; /* Кафява линия отляво */
+}
+
+form label {
+    font-size: 1.1em;
+    color: #8B4513; /* Кафяв текст */
+    margin-bottom: 10px;
+    display: block;
+}
+
+form input[type="text"],
+form textarea,
+form input[type="number"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 90%;
+    font-size: 1em;
+    margin-bottom: 15px;
+    background-color: #faf3e0; /* Светлокафяво */
+    text-align: center;
+}
+
+form button {
+    background-color: #FF7F50; /* Оранжево */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+form button:hover {
+    background-color: #8B4513; /* Тъмно кафяво при hover */
+}
+
+/* Каре за детайли на задачата */
+.task-details {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.task-details p {
+    font-size: 1.1em;
+    line-height: 1.5;
+    color: #4a4a4a;
+}
+
+.task-details strong {
+    color: #8B4513;
+}
+
+/* Линкове */
+a {
+    color: #FF7F50;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #8B4513;
+    text-decoration: underline;
+}
+
+/* Секция за бутони */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.buttons a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #FF7F50; /* Оранжево */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.buttons a:hover {
+    background-color: #8B4513; /* Тъмно кафяво */
+    color: white;
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+}
+

@@ -153,9 +153,13 @@ $stmtM->close();
 <html>
 <head>
     <title>Team Detail</title>
+    <link rel="stylesheet" type="text/css" href="../../css/team_detail.css">
 </head>
 <body>
-<h1>Team Detail</h1>
+    <div class = "team-container">
+        <div class = "team-header">
+            <h1>Team Detail</h1>
+</div>
 
 <?php
 // Display any error/success messages
@@ -167,11 +171,14 @@ if (!empty($successMsg)) {
 }
 ?>
 
-<p>
-    <strong>Team Name:</strong> <?php echo htmlspecialchars($team['team_name']); ?><br>
-    <strong>Leader:</strong> <?php echo htmlspecialchars($team['leader_name'] ?? 'None'); ?> (ID: <?php echo $team['leader_user_id']; ?>)<br>
-    <strong>Team ID:</strong> <?php echo $team['id']; ?>
-</p>
+<dic class = "team-details">
+    <div class = "team-card">
+    <h2><?php echo htmlspecialchars($team['team_name']); ?></h2>
+                <p><strong>Leader:</strong> <?php echo htmlspecialchars($team['leader_name']); ?> (ID: <?php echo htmlspecialchars($team['leader_id']); ?>)</p>
+                <p><strong>Team ID:</strong> <?php echo htmlspecialchars($team['id']); ?></p>
+    </div>
+</div>
+</div>
 
 <!-- Only leader or admin can edit the team name and delete -->
 <?php if ($canManage): ?>

@@ -63,6 +63,7 @@ $stmtTeams->close();
 <html>
 <head>
     <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="../css/dashboard.css">
 </head>
 <body>
 <h1>Welcome to Your Dashboard</h1>
@@ -91,7 +92,6 @@ $stmtTeams->close();
     <p>No tasks assigned yet.</p>
 <?php endif; ?>
 
-<!-- 2) Projects the user is on -->
 <h2>Your Projects</h2>
 <?php if ($projectsResult->num_rows > 0): ?>
     <ul>
@@ -107,28 +107,30 @@ $stmtTeams->close();
     <p>You are not assigned to any projects yet.</p>
 <?php endif; ?>
 
-<!-- 3) Teams the user is in -->
-<h2>Your Teams</h2>
-<?php if ($teamsResult->num_rows > 0): ?>
-    <ul>
-        <?php while ($team = $teamsResult->fetch_assoc()): ?>
-            <li>
-                <a href="teams/team_detail.php?id=<?php echo $team['team_id']; ?>">
-                    <?php echo htmlspecialchars($team['team_name']); ?>
-                </a>
-            </li>
-        <?php endwhile; ?>
-    </ul>
-<?php else: ?>
-    <p>You are not a member of any teams yet.</p>
-<?php endif; ?>
+<section id="your-teams">
+    <h2>Your Teams</h2>
+    <?php if ($teamsResult->num_rows > 0): ?>
+        <ul>
+            <?php while ($team = $teamsResult->fetch_assoc()): ?>
+                <li>
+                    <strong><?php echo htmlspecialchars($team['team_name']); ?></strong>
+                    (Leader: elitsa) —
+                    <a href="teams/team_detail.php?id=<?php echo $team['team_id']; ?>">Manage</a>
+                </li>
+            <?php endwhile; ?>
+        </ul>
+    <?php else: ?>
+        <p>You are not a member of any teams yet.</p>
+    <?php endif; ?>
+</section>
 
-<br>
 <!-- Basic nav links -->
+ <section id = "basic-links">
 <a href="teams/teams.php">Manage Teams</a> |
 <a href="projects/projects.php">Projects</a> |
 <a href="tasks/tasks.php">Tasks</a> |
 <a href="/auth/logout.php">Logout</a>
+    </section>
 
 </body>
 </html>
