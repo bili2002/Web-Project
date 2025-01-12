@@ -1,10 +1,25 @@
+<?php
+// Enable error reporting for development
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Start a session
+session_start();
+
+// Check if the user is already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Management</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
     <div class="container">
@@ -16,36 +31,30 @@
         </div>
 
         <!-- Login Form -->
-        <form id="loginForm" action="assets/login.php" method="POST">
+        <form id="loginForm" action="login.php" method="POST">
             <h2>Login</h2>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" name="username" required>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
             <button type="submit">Login</button>
         </form>
-        
 
         <!-- Registration Form -->
-        <form id="registerForm" action="assets/register.php" method="POST" style="display: none;">
+        <form id="registerForm" action="register.php" method="POST" style="display: none;">
             <h2>Register</h2>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <label for="role">Role:</label>
-            <select id="role" name="role" required>
+            <label for="registerUsername">Username:</label>
+            <input type="text" id="registerUsername" name="username" required>
+            <label for="registerPassword">Password:</label>
+            <input type="password" id="registerPassword" name="password" required>
+            <label for="registerRole">Role:</label>
+            <select id="registerRole" name="role" required>
                 <option value="team_leader">Team Leader</option>
                 <option value="developer">Developer</option>
                 <option value="observer">Observer</option>
             </select>
-            
             <button type="submit">Register</button>
-        </form>        
+        </form>
     </div>
 
     <script>
