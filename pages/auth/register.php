@@ -30,32 +30,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="../../css/register.css">
 </head>
 <body>
-<h1>Register</h1>
+    <main>
+        <section>
 
-<?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
+            <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
 
-<form action="" method="post">
-    <label>Faculty Number*</label><br>
-    <input type="text" name="faculty_number" required><br><br>
-    
-    <label>Username*</label><br>
-    <input type="text" name="username" required><br><br>
-    
-    <label>Email</label><br>
-    <input type="email" name="email"><br><br>
+            <form action="" method="post">
+                <fieldset>
+                    <legend>Registration Form</legend>
+                    
+                    <input type="text" name="faculty_number" placeholder="Faculty Number" required>
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="email" name="email" placeholder="Email">
+                    <input type="password" name="password" placeholder="Password" required>
+                    
+                    <button type="submit">Register</button>
+                </fieldset>
+            </form>
+        </section>
 
-    <label>Password*</label><br>
-    <input type="password" name="password" required><br><br>
-
-    <button type="submit">Register</button>
-</form>
-
-<p>Already have an account? <a href="login.php">Click here to login</a>.</p>
-<p><a href="../../index.php">Back to Home</a></p>
+        <footer>
+            <p>Already have an account?</p>
+            <p> <a href="login.php">Click here to login</a></p>
+        </footer>
+    </main>
 </body>
 </html>

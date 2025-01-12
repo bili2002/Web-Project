@@ -14,7 +14,7 @@ body {
 }
 
 header {
-    margin-bottom: 20px;
+    display: none; /* Премахва заглавието Login */
 }
 
 h1 {
@@ -30,6 +30,10 @@ main {
 }
 
 section {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
     text-align: center;
@@ -44,23 +48,19 @@ fieldset {
 legend {
     font-size: 1.5em;
     font-weight: bold;
-    margin-bottom: 10px;
+    color: white;
+    margin-bottom: 15px;
 }
 
 /* Формуляр */
 form {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 15px;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"], input[type="email"] {
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -71,12 +71,9 @@ input[type="text"], input[type="password"] {
     /* text-align: center; Центрира текстовете вътре в полетата */
 }
 
-input[type="text"]::placeholder {
-    color: #ccc;
-    font-size: 0.9em;
-}
-
-input[type="password"]::placeholder {
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+input[type="email"]::placeholder {
     color: #ccc;
     font-size: 0.9em;
 }
@@ -113,6 +110,5 @@ a:hover {
 
 footer {
     margin-top: 20px;
-    text-align: center;
     font-size: 1em;
 }
