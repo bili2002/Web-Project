@@ -42,30 +42,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
     <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="css/login.css">
 </head>
 <body>
-<h1>Login</h1>
+    <h1>Login</h1>
 
-<?php
-if (isset($_GET['registered'])) {
-    echo "<p style='color:green;'>Registration successful, please login.</p>";
-}
-if (!empty($error)) {
-    echo "<p style='color:red;'>$error</p>";
-}
-?>
+    <?php
+    if (isset($_GET['registered'])) {
+        echo "<p style='color:green;'>Registration successful, please login.</p>";
+    }
+    if (!empty($error)) {
+        echo "<p style='color:red;'>$error</p>";
+    }
+    ?>
 
-<form method="post">
-    <label>Username or Faculty Number</label><br>
-    <input type="text" name="username_or_faculty" required><br><br>
+    <form method="post">
+        <input type="text" name="username_or_faculty" placeholder="Username or Faculty Number" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
-
-    <button type="submit">Login</button>
-</form>
-
-<p>Don't have an account yet? <a href="register.php">Click here to register</a>.</p>
-<p><a href="index.php">Back to Home</a></p>
+    <p>Don't have an account yet? <a href="register.php">Click here to register</a></p>
 </body>
 </html>
+
