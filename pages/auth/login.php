@@ -1,9 +1,9 @@
 <?php
 session_start();
-include 'includes/db.php';
+include '../../includes/db.php';
 
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit;
 }
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['role']    = $user['role'];
-                header("Location: dashboard.php");
+                header("Location: ../dashboard.php");
                 exit;
             } else {
                 $error = "Invalid password.";
@@ -62,7 +62,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Login</button>
     </form>
 
+<<<<<<< HEAD:login.php
     <p>Don't have an account yet? <a href="register.php">Click here to register</a></p>
+=======
+    <label>Password</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Login</button>
+</form>
+
+<p>Don't have an account yet? <a href="register.php">Click here to register</a>.</p>
+<p><a href="../../index.php">Back to Home</a></p>
+>>>>>>> d9b62d43c7aae465b7bf3573dff27e48ca9a22b9:pages/auth/login.php
 </body>
 </html>
 
