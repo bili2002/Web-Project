@@ -18,28 +18,34 @@
         <!-- Login Form -->
         <form id="loginForm" action="login.php" method="POST">
             <h2>Login</h2>
-            <label for="loginUsername">Username:</label>
-            <input type="text" id="loginUsername" name="username" required>
-            <label for="loginPassword">Password:</label>
-            <input type="password" id="loginPassword" name="password" required>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
             <button type="submit">Login</button>
         </form>
+        
 
         <!-- Registration Form -->
         <form id="registerForm" action="register.php" method="POST" style="display: none;">
             <h2>Register</h2>
-            <label for="registerUsername">Username:</label>
-            <input type="text" id="registerUsername" name="username" required>
-            <label for="registerPassword">Password:</label>
-            <input type="password" id="registerPassword" name="password" required>
-            <label for="registerRole">Role:</label>
-            <select id="registerRole" name="role">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
                 <option value="team_leader">Team Leader</option>
                 <option value="developer">Developer</option>
                 <option value="observer">Observer</option>
             </select>
+            
             <button type="submit">Register</button>
-        </form>
+        </form>        
     </div>
 
     <script>
