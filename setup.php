@@ -1,44 +1,80 @@
 <?php
-$host = "localhost"; // Database host
-$username = "root";  // Database username
-$password = "";      // Database password
-$dbname = "project_management"; // Name of the database
+include 'includes/db.php';
 
-// Connect to MySQL server
-$conn = new mysqli($host, $username, $password);
+$queries = [
+    "CREATE TABLE IF NOT EXISTS `users` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `faculty_number` VARCHAR(50) NOT NULL UNIQUE,
+        `username` VARCHAR(50) NOT NULL UNIQUE,
+        `password` VARCHAR(255) NOT NULL,
+        `email` VARCHAR(100),
+        `role` VARCHAR(50) NOT NULL DEFAULT 'user',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB",
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    "CREATE TABLE IF NOT EXISTS `teams` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `team_name` VARCHAR(100) NOT NULL,
+        `leader_id` INT,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`leader_id`) REFERENCES `users`(`id`)
+            ON UPDATE CASCADE ON DELETE SET NULL
+    ) ENGINE=InnoDB",
+
+    "CREATE TABLE IF NOT EXISTS `team_members` (
+        `team_id` INT NOT NULL,
+        `user_id` INT NOT NULL,
+        `role_in_team` VARCHAR(50),
+        PRIMARY KEY (`team_id`, `user_id`),
+        FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE
+    ) ENGINE=InnoDB",
+
+    "CREATE TABLE IF NOT EXISTS `projects` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `title` VARCHAR(255) NOT NULL,
+        `description` TEXT,
+        `hours_estimated` INT DEFAULT 0,
+        `status` VARCHAR(50) DEFAULT 'open',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB",
+
+    "CREATE TABLE IF NOT EXISTS `tasks` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `title` VARCHAR(255) NOT NULL,
+        `description` TEXT,
+        `system_estimated_hours` INT DEFAULT 0,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB",
+
+    "CREATE TABLE IF NOT EXISTS `user_project_task` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `project_id` INT NOT NULL,
+        `task_id` INT NOT NULL,
+        `team_estimated_hours` INT DEFAULT 0,
+        `actual_hours` INT DEFAULT 0,
+        `status` VARCHAR(50) DEFAULT 'pending',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (`task_id`) REFERENCES `tasks`(`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE
+    ) ENGINE=InnoDB"
+];
+
+foreach ($queries as $sql) {
+    if ($conn->query($sql) === TRUE) {
+        echo "Table created or already exists.<br>";
+    } else {
+        echo "Error creating table: " . $conn->error . "<br>";
+    }
 }
 
-// Create database if it doesn't exist
-$sql = "CREATE DATABASE IF NOT EXISTS $dbname";
-if ($conn->query($sql) === TRUE) {
-    echo "Database created or already exists.<br>";
-} else {
-    die("Error creating database: " . $conn->error);
-}
-
-// Use the database
-$conn->select_db($dbname);
-
-// Create `users` table if it doesn't exist
-$sql = "CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('team_leader', 'developer', 'observer') DEFAULT 'observer',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)";
-if ($conn->query($sql) === TRUE) {
-    echo "Table `users` created or already exists.<br>";
-} else {
-    die("Error creating table: " . $conn->error);
-}
-
-// Close the connection
 $conn->close();
 
-echo "Setup completed successfully.";
-?>
+echo "Setup complete!";
