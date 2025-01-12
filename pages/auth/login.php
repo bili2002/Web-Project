@@ -1,9 +1,9 @@
 <?php
 session_start();
-include 'includes/db.php';
+include '../../includes/db.php';
 
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit;
 }
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['role']    = $user['role'];
-                header("Location: dashboard.php");
+                header("Location: ../dashboard.php");
                 exit;
             } else {
                 $error = "Invalid password.";
@@ -66,6 +66,6 @@ if (!empty($error)) {
 </form>
 
 <p>Don't have an account yet? <a href="register.php">Click here to register</a>.</p>
-<p><a href="index.php">Back to Home</a></p>
+<p><a href="../../index.php">Back to Home</a></p>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'includes/db.php';
+include '../../includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usernameOrFaculty = $_POST['username_or_faculty'];
@@ -46,6 +46,6 @@ if (!empty($message)) {
     <button type="submit">Send Reset Instructions</button>
 </form>
 
-<p><a href="index.php">Back to Home</a></p>
+<p><a href="../../index.php">Back to Home</a></p>
 </body>
 </html>

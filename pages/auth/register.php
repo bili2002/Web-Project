@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'includes/db.php';
+include '../../includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $facultyNumber = $_POST['faculty_number'];
@@ -56,6 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
 <p>Already have an account? <a href="login.php">Click here to login</a>.</p>
-<p><a href="index.php">Back to Home</a></p>
+<p><a href="../../index.php">Back to Home</a></p>
 </body>
 </html>
