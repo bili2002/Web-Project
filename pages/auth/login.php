@@ -62,18 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Login</button>
     </form>
 
-<<<<<<< HEAD:login.php
-    <p>Don't have an account yet? <a href="register.php">Click here to register</a></p>
-=======
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
-
-    <button type="submit">Login</button>
-</form>
 
 <p>Don't have an account yet? <a href="register.php">Click here to register</a>.</p>
-<p><a href="../../index.php">Back to Home</a></p>
->>>>>>> d9b62d43c7aae465b7bf3573dff27e48ca9a22b9:pages/auth/login.php
 </body>
 </html>
 
