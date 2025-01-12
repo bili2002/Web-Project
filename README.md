@@ -1,2 +1,2 @@
 # Web-Project
-Web project for university about estimating projects' complexity.
+University web project about estimating projects' complexity.
