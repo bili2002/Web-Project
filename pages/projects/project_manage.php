@@ -4,12 +4,13 @@ session_start();
 require '../../includes/auth_check.php';  // or your login-check
 include '../../includes/db.php';
 
+// 1) Validate project in URL
 if (!isset($_GET['id'])) {
     die("No project specified.");
 }
 $projectId = (int)$_GET['id'];
 
-// 1) Check if the project exists
+// Check project existence
 $stmtProj = $conn->prepare("SELECT id, title FROM projects WHERE id=? LIMIT 1");
 $stmtProj->bind_param("i", $projectId);
 $stmtProj->execute();
@@ -24,27 +25,29 @@ $errorMsg   = '';
 $successMsg = '';
 
 /**
- * 2) CREATE / EDIT / UPDATE STATUS / DELETE 
- *    but for tasks belonging to THIS single project
+ * 2) Handle CREATE / EDIT / UPDATE STATUS / DELETE
+ *    for tasks belonging to THIS single project
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $crudAction = $_POST['crud_action'] ?? '';
 
-    // A) CREATE new task for this project (no status/hours fields, defaults to pending/0)
+    // A) CREATE (sub)task
     if ($crudAction === 'create') {
-        $title       = $_POST['create_title'] ?? '';
-        $description = $_POST['create_description'] ?? '';
+        $title       = $_POST['create_title']        ?? '';
+        $description = $_POST['create_description']  ?? '';
+        $parentId    = (int)($_POST['parent_id']      ?? 0);
+        // new: user sets initial estimated hours
+        $estHours    = (int)($_POST['create_estimated_hours'] ?? 0);
 
         if (empty($title)) {
             $errorMsg = "Task title is required.";
         } else {
             // 1) Insert into tasks
             $stmtT = $conn->prepare("
-                INSERT INTO tasks (title, description)
-                VALUES (?, ?)
+                INSERT INTO tasks (title, description, parent_id)
+                VALUES (?, ?, ?)
             ");
-            $stmtT->bind_param("ss", $title, $description);
-
+            $stmtT->bind_param("ssi", $title, $description, $parentId);
             if ($stmtT->execute()) {
                 $newTaskId = $stmtT->insert_id;
                 $stmtT->close();
@@ -54,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $linkSql = "
                     INSERT INTO user_project_task
                     (user_id, project_id, task_id, team_estimated_hours, actual_hours, status)
-                    VALUES (?, ?, ?, 0, 0, 'pending')
+                    VALUES (?, ?, ?, ?, 0, 'pending')
                 ";
                 $stmtLink = $conn->prepare($linkSql);
-                $stmtLink->bind_param("iii", $currentUserId, $projectId, $newTaskId);
+                $stmtLink->bind_param("iiii", $currentUserId, $projectId, $newTaskId, $estHours);
                 if ($stmtLink->execute()) {
                     $successMsg = "Task '$title' created for project '{$project['title']}'.";
                 } else {
@@ -70,42 +73,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    // B) EDIT an existing task (title/description only)
+    // B) EDIT an existing task (title/description, and maybe est hours if pending)
     elseif ($crudAction === 'update_task') {
-        $taskId      = (int)($_POST['edit_task_id'] ?? 0);
-        $title       = $_POST['edit_title'] ?? '';
-        $description = $_POST['edit_description'] ?? '';
+        $taskId    = (int)($_POST['edit_task_id']         ?? 0);
+        $title     = $_POST['edit_title']                 ?? '';
+        $desc      = $_POST['edit_description']           ?? '';
+        $linkId    = (int)($_POST['edit_link_id']         ?? 0);
+        $newEst    = (int)($_POST['edit_estimated_hours'] ?? 0);
 
         if ($taskId < 1) {
             $errorMsg = "Invalid task ID.";
         } elseif (empty($title)) {
             $errorMsg = "Task title cannot be empty.";
         } else {
+            // 1) Update tasks table for title/description
             $updT = $conn->prepare("
                 UPDATE tasks
                 SET title = ?, description = ?
                 WHERE id = ?
             ");
-            $updT->bind_param("ssi", $title, $description, $taskId);
-            if ($updT->execute()) {
-                $successMsg = "Task #$taskId updated.";
-            } else {
+            $updT->bind_param("ssi", $title, $desc, $taskId);
+            if (!$updT->execute()) {
                 $errorMsg = "Error updating task: " . $updT->error;
             }
             $updT->close();
+
+            // 2) If status = 'pending', allow changing the estimate
+            //    So we fetch the current status from user_project_task:
+            $sqlSt = "SELECT status FROM user_project_task WHERE id=? LIMIT 1";
+            $stmtSt = $conn->prepare($sqlSt);
+            $stmtSt->bind_param("i", $linkId);
+            $stmtSt->execute();
+            $resSt = $stmtSt->get_result();
+            $rowSt = $resSt->fetch_assoc();
+            $stmtSt->close();
+
+            if ($rowSt && $rowSt['status'] === 'pending') {
+                // update the estimate
+                $updEst = $conn->prepare("
+                    UPDATE user_project_task
+                    SET team_estimated_hours=?
+                    WHERE id=?
+                ");
+                $updEst->bind_param("ii", $newEst, $linkId);
+                if (!$updEst->execute()) {
+                    $errorMsg = "Error updating estimate: " . $updEst->error;
+                } else {
+                    $successMsg = "Task #$taskId updated.";
+                }
+                $updEst->close();
+            } else {
+                // either no row or status != pending
+                $successMsg = "Task #$taskId updated (title/desc). Estimate not changed (task not pending).";
+            }
         }
     }
     // C) UPDATE STATUS inline (prompt for actual hours if done)
     elseif ($crudAction === 'update_status') {
-        $linkId    = (int)($_POST['link_id'] ?? 0);
-        $newStatus = $_POST['new_status'] ?? 'pending';
+        $linkId    = (int)($_POST['link_id']          ?? 0);
+        $newStatus = $_POST['new_status']            ?? 'pending';
         $actual    = (int)($_POST['new_actual_hours'] ?? 0);
 
         if ($linkId < 1) {
             $errorMsg = "Invalid link ID for status update.";
         } else {
             if ($newStatus !== 'done') {
-                $actual = 0;  // reset actual hours if not done
+                $actual = 0;  // reset actual if not done
             }
             $updSt = $conn->prepare("
                 UPDATE user_project_task
@@ -123,12 +156,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// 3) DELETE a task for this project
+// 3) DELETE
 $action = $_GET['action'] ?? '';
 $delTaskId = (int)($_GET['task_id'] ?? 0);
 if ($action === 'delete' && $delTaskId > 0) {
-    // (Optional) If you do ON DELETE CASCADE, the link row is removed automatically
-    // Otherwise do: $conn->query("DELETE FROM user_project_task WHERE task_id=$delTaskId AND project_id=$projectId");
+    // If ON DELETE CASCADE is set, link row is removed automatically
     $delStmt = $conn->prepare("DELETE FROM tasks WHERE id=?");
     $delStmt->bind_param("i", $delTaskId);
     if ($delStmt->execute()) {
@@ -140,12 +172,14 @@ if ($action === 'delete' && $delTaskId > 0) {
 }
 
 /**
- * 4) Fetch tasks that belong only to this project
+ * 4) Fetch tasks for this project (including parent_id) 
+ *    We'll build $tasksByParent and do DFS
  */
 $tasksList = [];
 $sql = "
     SELECT
       t.id AS task_id,
+      t.parent_id,
       t.title,
       t.description,
       upt.id AS link_id,
@@ -155,7 +189,7 @@ $sql = "
     FROM user_project_task upt
     JOIN tasks t ON upt.task_id = t.id
     WHERE upt.project_id = ?
-    ORDER BY t.id DESC
+    ORDER BY t.id ASC
 ";
 $stmtList = $conn->prepare($sql);
 $stmtList->bind_param("i", $projectId);
@@ -165,18 +199,96 @@ while ($row = $resList->fetch_assoc()) {
     $tasksList[] = $row;
 }
 $stmtList->close();
+
+// Build $tasksByParent array
+$tasksByParent = [];
+foreach ($tasksList as $row) {
+    $p = $row['parent_id'] ?? 0; // if NULL => 0
+    $tasksByParent[$p][] = $row;
+}
+// Sort each group if needed
+foreach ($tasksByParent as &$grp) {
+    usort($grp, function($a, $b) {
+        return $a['task_id'] - $b['task_id'];
+    });
+}
+unset($grp);
+
+/**
+ * 5) Recursive print function
+ */
+function printTasksDFS($parentId, $level, $tasksByParent) {
+    if (empty($tasksByParent[$parentId])) return;
+    foreach ($tasksByParent[$parentId] as $ts) {
+        $indent = str_repeat('— ', $level);
+
+        echo "<tr>\n";
+        // ID
+        echo "  <td>{$ts['task_id']}</td>\n";
+        // Title
+        echo "  <td>" . $indent . htmlspecialchars($ts['title']) . "</td>\n";
+        // Description
+        echo "  <td>" . nl2br(htmlspecialchars($ts['description'])) . "</td>\n";
+        // Team Est
+        echo "  <td>" . (int)$ts['team_estimated_hours'] . "</td>\n";
+        // Actual
+        echo "  <td>" . (int)$ts['actual_hours'] . "</td>\n";
+
+        // Status cell
+        echo "  <td>\n";
+        echo "    <form method='post' style='margin:0;' onsubmit='return handleStatusChange({$ts['link_id']})'>\n";
+        echo "      <input type='hidden' name='crud_action' value='update_status'>\n";
+        echo "      <input type='hidden' name='link_id' value='{$ts['link_id']}'>\n";
+        echo "      <input type='hidden' name='new_actual_hours' id='actualHidden{$ts['link_id']}' value='" . (int)$ts['actual_hours'] . "'>\n";
+        echo "      <select name='new_status' id='statusSelect{$ts['link_id']}'>\n";
+        echo "        <option value='pending' " 
+             . ($ts['status'] === 'pending' ? 'selected' : '') . ">Pending</option>\n";
+        echo "        <option value='in progress' " 
+             . ($ts['status'] === 'in progress' ? 'selected' : '') . ">In Progress</option>\n";
+        echo "        <option value='done' " 
+             . ($ts['status'] === 'done' ? 'selected' : '') . ">Done</option>\n";
+        echo "      </select>\n";
+        echo "      <button type='submit'>Update</button>\n";
+        echo "    </form>\n";
+        echo "  </td>\n";
+
+        // Actions
+        echo "  <td>\n";
+        // Edit => pass linkId, status, and currentEst so we can handle in JS
+        echo "    <button type='button' onclick=\"openEditModal("
+             . $ts['task_id'] . ", "
+             . $ts['link_id'] . ", '"
+             . addslashes($ts['title']) . "', '"
+             . addslashes($ts['description']) . "', '"
+             . addslashes($ts['status']) . "', "
+             . (int)$ts['team_estimated_hours']
+             . ")\">Edit</button> |\n";
+
+        // Subtask
+        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> |\n";
+
+        // Delete
+        echo "    <a href='?action=delete&task_id={$ts['task_id']}&id={$_GET['id']}'"
+             . " onclick=\"return confirm('Delete Task #{$ts['task_id']}?');\">"
+             . "Delete</a>\n";
+        echo "  </td>\n";
+
+        echo "</tr>\n";
+
+        // Recurse
+        printTasksDFS($ts['task_id'], $level+1, $tasksByParent);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Manage Tasks for Project "<?php echo htmlspecialchars($project['title']); ?>"</title>
+    <title>Manage Tasks (DFS) for "<?php echo htmlspecialchars($project['title']); ?>"</title>
     <style>
         .error { color:red; }
         .success { color:green; }
-        table { border-collapse: collapse; }
+        table { border-collapse: collapse; width: 100%; }
         td, th { border:1px solid #ccc; padding:8px; }
-
-        /* Modal backdrop for create/edit popups */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -188,7 +300,7 @@ $stmtList->close();
         .modal-backdrop.active { display: flex; }
         .modal {
             background: #fff;
-            width: 400px;
+            width: 420px;
             padding: 20px;
             position: relative;
             border-radius: 8px;
@@ -213,82 +325,37 @@ if ($errorMsg)   echo "<p class='error'>$errorMsg</p>";
 if ($successMsg) echo "<p class='success'>$successMsg</p>";
 ?>
 
-<!-- CREATE TASK BUTTON -->
 <button type="button" onclick="openCreateModal()">Create Task</button>
 <br><br>
 
-<!-- TABLE of tasks (NO project column) -->
 <table>
   <thead>
     <tr>
       <th>ID</th>
       <th>Title</th>
       <th>Description</th>
-      <th>Team Est</th>
+      <th>Est</th>
       <th>Actual</th>
       <th>Status</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-  <?php if (count($tasksList) > 0): ?>
-    <?php foreach ($tasksList as $ts): ?>
-      <tr>
-        <td><?php echo $ts['task_id']; ?></td>
-        <td><?php echo htmlspecialchars($ts['title']); ?></td>
-        <td><?php echo nl2br(htmlspecialchars($ts['description'])); ?></td>
-        <td><?php echo (int)$ts['team_estimated_hours']; ?></td>
-        <td><?php echo (int)$ts['actual_hours']; ?></td>
-        <td>
-          <form method="post" style="margin:0;" 
-                onsubmit="return handleStatusChange(<?php echo $ts['link_id']; ?>)">
-            <input type="hidden" name="crud_action" value="update_status">
-            <input type="hidden" name="link_id" value="<?php echo $ts['link_id']; ?>">
-            <input type="hidden" name="new_actual_hours" 
-                   id="actualHidden<?php echo $ts['link_id']; ?>" 
-                   value="<?php echo (int)$ts['actual_hours']; ?>">
-            <select name="new_status" id="statusSelect<?php echo $ts['link_id']; ?>">
-              <option value="pending" 
-                <?php if ($ts['status'] === 'pending') echo 'selected'; ?>>Pending</option>
-              <option value="in progress" 
-                <?php if ($ts['status'] === 'in progress') echo 'selected'; ?>>In Progress</option>
-              <option value="done" 
-                <?php if ($ts['status'] === 'done') echo 'selected'; ?>>Done</option>
-            </select>
-            <button type="submit">Update</button>
-          </form>
-        </td>
-        <td>
-          <button type="button"
-            onclick="openEditModal(
-              <?php echo $ts['task_id']; ?>,
-              '<?php echo addslashes($ts['title']); ?>',
-              '<?php echo addslashes($ts['description']); ?>'
-            )">Edit</button>
-          |
-          <a href="?action=delete&task_id=<?php echo $ts['task_id']; ?>&id=<?php echo $projectId; ?>"
-             onclick="return confirm('Delete Task #<?php echo $ts['task_id']; ?> from project?');">
-             Delete
-          </a>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-  <?php else: ?>
-    <tr><td colspan="7">No tasks found for this project.</td></tr>
-  <?php endif; ?>
+    <?php printTasksDFS(0, 0, $tasksByParent); ?>
   </tbody>
 </table>
 
 <br>
 <p><a href="projects.php">Back to Projects</a></p>
 
-<!-- CREATE MODAL -->
+<!-- CREATE / SUBTASK MODAL -->
 <div class="modal-backdrop" id="createModalBackdrop">
   <div class="modal">
     <span class="close-btn" onclick="closeCreateModal()">x</span>
-    <h2>Create Task in "<?php echo htmlspecialchars($project['title']); ?>"</h2>
+    <h2>Create Task (or Subtask)</h2>
     <form method="post">
       <input type="hidden" name="crud_action" value="create">
+      <input type="hidden" name="parent_id" id="create_parent_id" value="0">
 
       <div class="form-group">
         <label for="create_title">Title:</label>
@@ -298,16 +365,17 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
         <label for="create_description">Description:</label>
         <textarea name="create_description" id="create_description"></textarea>
       </div>
-
-      <!-- No project dropdown, because we already know projectId from the URL. 
-           No status or hours here. -->
-
+      <!-- Estimated Hours -->
+      <div class="form-group">
+        <label for="create_estimated_hours">Estimated Hours:</label>
+        <input type="number" name="create_estimated_hours" id="create_estimated_hours" min="0" value="0">
+      </div>
       <button type="submit">Create</button>
     </form>
   </div>
 </div>
 
-<!-- EDIT MODAL (no project/hours) -->
+<!-- EDIT MODAL -->
 <div class="modal-backdrop" id="editModalBackdrop">
   <div class="modal">
     <span class="close-btn" onclick="closeEditModal()">x</span>
@@ -315,6 +383,8 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
     <form method="post">
       <input type="hidden" name="crud_action" value="update_task">
       <input type="hidden" name="edit_task_id" id="edit_task_id">
+      <!-- Link ID to update the estimate if pending -->
+      <input type="hidden" name="edit_link_id" id="edit_link_id">
 
       <div class="form-group">
         <label for="edit_title">Title:</label>
@@ -323,6 +393,11 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
       <div class="form-group">
         <label for="edit_description">Description:</label>
         <textarea name="edit_description" id="edit_description"></textarea>
+      </div>
+      <!-- Only show if status == 'pending' (JS toggles it) -->
+      <div class="form-group" id="editEstContainer" style="display:none;">
+        <label for="edit_estimated_hours">Estimated Hours:</label>
+        <input type="number" name="edit_estimated_hours" id="edit_estimated_hours" min="0" value="0">
       </div>
 
       <button type="submit">Update</button>
@@ -333,19 +408,36 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
 <script>
 // CREATE
 function openCreateModal(){
+  document.getElementById('create_parent_id').value = 0;
   document.getElementById('create_title').value = '';
   document.getElementById('create_description').value = '';
+  document.getElementById('create_estimated_hours').value = 0;
   document.getElementById('createModalBackdrop').classList.add('active');
 }
 function closeCreateModal(){
   document.getElementById('createModalBackdrop').classList.remove('active');
 }
+// SUBTASK
+function openSubtaskModal(parentId) {
+  openCreateModal();
+  document.getElementById('create_parent_id').value = parentId;
+}
 
 // EDIT
-function openEditModal(taskId, title, description){
+function openEditModal(taskId, linkId, title, desc, status, est) {
   document.getElementById('edit_task_id').value = taskId;
+  document.getElementById('edit_link_id').value = linkId;
   document.getElementById('edit_title').value = title;
-  document.getElementById('edit_description').value = description;
+  document.getElementById('edit_description').value = desc;
+  document.getElementById('edit_estimated_hours').value = est || 0;
+
+  // If status == 'pending', show the estimated hours field
+  if (status === 'pending') {
+    document.getElementById('editEstContainer').style.display = 'block';
+  } else {
+    document.getElementById('editEstContainer').style.display = 'none';
+  }
+
   document.getElementById('editModalBackdrop').classList.add('active');
 }
 function closeEditModal(){
@@ -360,8 +452,7 @@ function handleStatusChange(linkId){
   if (sel.value === 'done') {
     var hours = prompt("Enter actual hours:", "0");
     if (hours === null) { 
-      // user canceled => do not submit
-      return false;
+      return false; // user canceled
     }
     if (isNaN(hours) || hours < 0) {
       alert("Please enter a valid non-negative number for hours.");
@@ -371,7 +462,7 @@ function handleStatusChange(linkId){
   } else {
     hiddenFld.value = 0;
   }
-  return true; 
+  return true;
 }
 </script>
 
