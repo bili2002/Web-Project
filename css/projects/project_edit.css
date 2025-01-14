@@ -1,0 +1,146 @@
+/* Основни стилове за страницата */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* Светлосив фон */
+    color: #333; /* Тъмносив текст */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Контейнер за съдържанието */
+.container {
+    background-color: #fff; /* Бяло за контейнера */
+    max-width: 600px;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Лека сянка */
+}
+
+/* Заглавие на страницата */
+header h1 {
+    text-align: center;
+    font-size: 24px;
+    color: #FF7F50; /* Оранжев цвят */
+    margin-bottom: 20px;
+}
+
+/* Стилове за съобщения */
+.alert {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.alert.error {
+    color: #e74c3c; /* Червено за грешки */
+    background-color: #fceaea; /* Светло червено за фон */
+    border: 1px solid #e74c3c;
+}
+
+.alert.success {
+    color: #27ae60; /* Зелено за успех */
+    background-color: #eafaf1; /* Светло зелено за фон */
+    border: 1px solid #27ae60;
+}
+
+/* Формуляр */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-weight: bold;
+    color: #333;
+}
+
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    padding: 5px 0px ;
+    font-size: 14px;
+    border: 1px solid #ddd; /* Светлосива рамка */
+    border-radius: 4px;
+    background-color: #fdfdfd;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* button {
+    background-color: #FF7F50;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+} */
+
+button {
+    background-color: #FF7F50; /* Оранжев цвят */
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: block; /* Блоков елемент за по-лесно центриране */
+    margin: 0 auto; /* Центриране хоризонтално */
+    text-align: center; /* Центриране на текста вътре в бутона */
+}
+
+
+button:hover {
+    background-color: #8B4513; /* По-тъмен нюанс на оранжевото */
+}
+
+/* Линкове */
+a {
+    color: #FF7F50; /* Оранжев цвят */
+    text-decoration: none;
+    font-weight: bold;
+
+}
+
+a:hover {
+    color: #8B4513;
+}
+
+/* Секция за изтриване */
+.delete-project p a {
+    color: #e74c3c; /* Червено за изтриване */
+}
+
+.delete-section {
+    text-align: center;
+}
+
+
+.delete-project a:hover {
+    color: #8B4513;
+}
+
+/* Footer */
+footer {
+    margin-top: 20px;
+    text-align: left;
+}
+
+footer p {
+    font-size: 14px;
+    color: #555;
+}

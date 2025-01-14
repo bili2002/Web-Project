@@ -67,50 +67,79 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
     $del->close();
 }
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/projects/project_edit.css">
     <title>Edit Project</title>
 </head>
 <body>
-<h1>Edit Project</h1>
+    <div class="container">
+        <header>
+            <h1>Edit Project</h1>
+        </header>
 
-<?php
-if (!empty($errorMsg)) {
-    echo "<p style='color:red;'>$errorMsg</p>";
-}
-if (!empty($successMsg)) {
-    echo "<p style='color:green;'>$successMsg</p>";
-}
-?>
+        <main>
+            <!-- Display error/success messages -->
+            <?php if (!empty($errorMsg)): ?>
+                <section class="alert error">
+                    <p><?php echo htmlspecialchars($errorMsg); ?></p>
+                </section>
+            <?php endif; ?>
+            <?php if (!empty($successMsg)): ?>
+                <section class="alert success">
+                    <p><?php echo htmlspecialchars($successMsg); ?></p>
+                </section>
+            <?php endif; ?>
 
-<!-- Edit form -->
-<form method="post">
-    <input type="hidden" name="action" value="update">
+            <!-- Edit form -->
+            <section>
+                <form method="post">
+                    <input type="hidden" name="action" value="update">
 
-    <label>Title:</label><br>
-    <input type="text" name="title" value="<?php echo htmlspecialchars($project['title']); ?>"><br><br>
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($project['title']); ?>">
+                    </div>
 
-    <label>Description:</label><br>
-    <textarea name="description"><?php echo htmlspecialchars($project['description']); ?></textarea><br><br>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description"><?php echo htmlspecialchars($project['description']); ?></textarea>
+                    </div>
 
-    <label>Status:</label><br>
-    <select name="status">
-        <option value="open" <?php if ($project['status'] === 'open') echo 'selected'; ?>>Open</option>
-        <option value="in progress" <?php if ($project['status'] === 'in progress') echo 'selected'; ?>>In Progress</option>
-        <option value="completed" <?php if ($project['status'] === 'completed') echo 'selected'; ?>>Completed</option>
-    </select><br><br>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status">
+                            <option value="open" <?php if ($project['status'] === 'open') echo 'selected'; ?>>Open</option>
+                            <option value="in progress" <?php if ($project['status'] === 'in progress') echo 'selected'; ?>>In Progress</option>
+                            <option value="completed" <?php if ($project['status'] === 'completed') echo 'selected'; ?>>Completed</option>
+                        </select>
+                    </div>
 
-    <button type="submit">Update Project</button>
-</form>
+                    <div class="form-actions">
+                        <button type="submit">Update Project</button>
+                    </div>
+                </form>
+            </section>
 
-<p>
-    <a href="?id=<?php echo $projectId; ?>&action=delete"
-       onclick="return confirm('Are you sure you want to delete this project?')">
-       Delete Project
-    </a>
-</p>
+            <!-- Delete link -->
+            <section class="delete-section">
+                <p>
+                    <a href="?id=<?php echo $projectId; ?>&action=delete"
+                        onclick="return confirm('Are you sure you want to delete this project?')" >
+                        Delete Project
+                    </a>
+                </p>
+            </section>
+        </main>
 
-<p><a href="projects.php">Back to Projects</a></p>
+        <footer>
+            <p><a href="projects.php"> < Back to Projects</a></p>
+        </footer>
+    </div>
 </body>
 </html>
+
