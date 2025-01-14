@@ -62,6 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($title)) {
             $errorMsg = "Task title is required.";
         } elseif (!$errorMsg) {
+            if (empty($parentId)) {
+                $parentId = null;
+            }
+
             // 1) Insert into tasks
             $stmt = $conn->prepare("
                 INSERT INTO tasks (title, description, parent_id)
@@ -293,7 +297,7 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tasks DFS</title>
+    <title>Tasks</title>
     <style>
         .error { color: red; }
         .success { color: green; }
