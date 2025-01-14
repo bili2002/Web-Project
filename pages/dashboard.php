@@ -129,7 +129,7 @@ $stmtTeams->close();
 <a href="teams/teams.php">Manage Teams</a> |
 <a href="projects/projects.php">Projects</a> |
 <a href="tasks/tasks.php">Tasks</a> |
-<a href="/auth/logout.php">Logout</a>
+<a href="auth/logout.php">Logout</a>
     </section>
 
 </body>

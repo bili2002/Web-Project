@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="../../css/login.css">
+    <link rel="stylesheet" type="text/css" href="../../css/auth/login.css">
 </head>
 <body>
     <main>
@@ -70,8 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <footer>
-        <p>Don't have an account yet?</p>
+        <p>Don't have an account yet or don't remember your password?</p>
         <p><a href="register.php">Click here to register</a></p>
+        <p><a href ="forgot_password.php">Click here to change password</a></p>
+        <!-- <p> Forgot password? </p> -->
+        <!-- <p> <a href ="forgot_password.php">Click here to change password</a></p> -->
     </footer>
 </body>
 </html>

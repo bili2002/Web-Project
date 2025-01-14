@@ -23,29 +23,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
+    <link rel="stylesheet" href="../../css/auth/forgot_password.css">
 </head>
 <body>
-<h1>Forgot Password</h1>
 
-<?php
-if (!empty($error)) {
-    echo "<p style='color:red;'>$error</p>";
-}
-if (!empty($message)) {
-    echo "<p style='color:green;'>$message</p>";
-}
-?>
+    <main>
+        <?php if (!empty($error)): ?>
+            <section class="error-message">
+                <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
+            </section>
+        <?php endif; ?>
 
-<form method="post">
-    <label>Username or Faculty Number</label><br>
-    <input type="text" name="username_or_faculty" required><br><br>
-    <button type="submit">Send Reset Instructions</button>
-</form>
+        <?php if (!empty($message)): ?>
+            <section class="success-message">
+                <p style="color:green;"><?php echo htmlspecialchars($message); ?></p>
+            </section>
+        <?php endif; ?>
 
-<p><a href="../../index.php">Back to Home</a></p>
+        <section class="form-container">
+            <h1>Forgot Password</h1> <!-- Преместено заглавие -->
+            <form method="post">
+                <input type="text" id="username_or_faculty" name="username_or_faculty"  placeholder = "Username or faculty number" required><br><br>
+                <button type="submit">Send Reset Instructions</button>
+            </form>
+        </section>
+
+        <nav>
+            <a href="../../index.php"> < Back to Home</a>
+        </nav>
+    </main>
+
 </body>
 </html>
