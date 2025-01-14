@@ -1,0 +1,191 @@
+/* Общ стил за цялата страница */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
+    color: #8B4513;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff; /* Бял фон за контейнера */
+    border: 1px solid #ddd; /* Светлосива рамка */
+    border-radius: 6px;
+}
+
+h1 {
+    color: #8B4513; /* Тъмен цвят за заглавия */
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Лека сянка */
+}
+
+/* Съобщения за грешка / успех */
+.error {
+    color: red; /* Оранжево за грешки */
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.success {
+    color: green; /* Тъмен текст за успех */
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Бутон за "Create Project" */
+button {
+    background-color: #FF7F50; /* Оранжев цвят */
+    color: #fff;              /* Бял текст */
+    border: none;            /* Без рамка */
+    padding: 12px 20px;      /* Повече вътрешни отстояния */
+    cursor: pointer;
+    border-radius: 8px;      /* По-закръглени ъгли */
+    font-size: 16px;         /* По-голям шрифт */
+    font-weight: bold;       /* Удебелен шрифт */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Лека сянка */
+    transition: background-color 0.3s ease;   /* Анимация при hover */
+}
+
+button:hover {
+    background-color: #8B4513; ; /* По-тъмен нюанс при hover */
+}
+
+/* Списъкът с проекти */
+/* ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+} */
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+}
+
+
+ul li {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-left: 5px solid #FF7F50; /* Оранжева линия отляво */
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+ul li .project-info {
+    display: flex;
+    flex-direction: column; /* Вертикално подравняване */
+    flex: 2; /* Задаване на повече пространство за информацията */
+    text-align: left; /* Ляво подравняване на текста */
+    color: #4a4a4a;
+}
+
+ul li .project-actions {
+    display: flex;
+    justify-content: space-between;
+    flex: 1; /* Задаване на по-малко пространство за действията */
+    text-align: right; /* Дясно подравняване */
+}
+
+ul li .project-actions a {
+    margin-left: 10px; /* Разстояние между линковете */
+}
+
+
+ul li a:hover {
+    color: #8B4513;
+}
+
+ul li .project-status {
+    color: #8B4513;
+    font-weight: bold;
+    margin-top: 5px; /* Леко разстояние от името на проекта */
+}
+
+/* Линк „Back to Dashboard“ */
+.container a {
+    color: #FF7F50;
+    text-decoration: none;
+    font-weight: bold;
+}
+.container a:hover {
+    color: #8B4513; 
+}
+
+/* Модал и неговия фон */
+
+.modal-backdrop {
+    display: none;            
+    position: fixed;           
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0,0,0,0.4);
+    justify-content: center;    
+    align-items: center;        
+    z-index: 9999;
+}
+
+.modal-backdrop.active {
+    display: flex;
+}
+
+.modal {
+    background: #fff;
+    width: 400px;
+    padding: 20px;
+    position: relative; 
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #8B4513;
+}
+.close-btn:hover {
+    color: #aaa;
+}
+
+/* Формови елементи в модала */
+
+.modal form {
+    padding: 0 20px; /* 20px отляво и отдясно */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #8B4513;
+}
+input[type="text"],
+textarea,
+select {
+    width: 100%;            
+    box-sizing: border-box; 
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    color: #333;
+}
+input[type="text"]::placeholder,
+textarea::placeholder {
+    color: #aaa;
+}

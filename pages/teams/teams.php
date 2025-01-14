@@ -101,6 +101,6 @@ if (!empty($successMsg)) {
     <p>No teams yet.</p>
 <?php endif; ?>
 
-<p><a href="../dashboard.php">Back to Dashboard</a></p>
+<p><a href="../dashboard.php">< Back to Dashboard</a></p>
 </body>
 </html>

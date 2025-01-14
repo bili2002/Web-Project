@@ -241,6 +241,6 @@ if (!empty($successMsg)) {
 <?php endif; ?>
 
 <br>
-<p><a href="../../pages/teams/teams.php">Back to Teams</a></p>
+<p><a href="../../pages/teams/teams.php">< Back to Teams</a></p>
 </body>
 </html>
