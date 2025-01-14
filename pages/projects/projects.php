@@ -150,21 +150,56 @@ $resPT->close();
     <main>
         <?php if (count($projects) > 0): ?>
             <ul class="project-list">
-            <?php foreach ($projects as $p): ?>
-                <li class="project-item">
-                    <div class="project-info">
-                        <strong><?php echo htmlspecialchars($p['title']); ?></strong>
-                        <span class="project-status">(Status: <?php echo htmlspecialchars($p['status']); ?>)</span>
-                        <br>
-                    </div>
+            <?php foreach ($projects as $p): 
+                $pid       = $p['id'];
+                $projTeams = $projectTeams[$pid] ?? []; // array of team_ids
+                // We check if the user leads ANY of those teams => can edit
+                // If user is admin, also can edit
+                $canEditOrManage = false;
+                if ($userRole === 'admin') {
+                    $canEditOrManage = true;
+                } else {
+                    // If the user's leader_id is in $projTeams
+                    // Actually we stored team IDs, so we must see if user leads any of them
+                    foreach ($myTeams as $mt) {
+                        $myTeamId   = $mt['id'];
+                        if (in_array($myTeamId, $projTeams)) {
+                            // user leads this team => can manage
+                            $canEditOrManage = true;
+                            break;
+                        }   
+                    }   
+                }   
+            ?>  
+            <li class="project-item">
+                <div class="project-info">
+                    <strong><?php echo htmlspecialchars($p['title']); ?></strong>
+                    <span class="project-status">(Status: <?php echo htmlspecialchars($p['status']); ?>)</span>
+                    <br>
+                </div>
+                    
+                Assigned Teams:
+                <?php 
+                if (count($projTeams) > 0) {
+                    echo implode(", ", $projTeams); // or fetch actual names if you like
+                } else {
+                    echo "(none)";
+                }   
+                ?>  
+                <br>
+
+                <!-- If user can't manage/edit, hide links --> 
+                <?php if ($canEditOrManage): ?>
                     <div class="project-actions">
                         <!-- Link to edit project details -->
                         <a href="project_edit.php?id=<?php echo $p['id']; ?>">Edit Project</a>
-                        |
                         <!-- Link to manage tasks for this project -->
                         <a href="project_manage.php?id=<?php echo $p['id']; ?>">Manage Tasks</a>
                     </div>
-                </li>
+                <?php else: ?>
+                    <!-- Just show read-only info, no manage links --> 
+                    <em>You are not a part of the project.</em>
+                <?php endif; ?>
             <?php endforeach; ?>
             </ul>
         <?php else: ?>
@@ -208,7 +243,7 @@ $resPT->close();
                 </div>
 
             <div class="form-group">
-                <label for="team_ids">Assign Teams (only teams you lead or admin sees all):</label>
+                <label for="team_ids">Assign Teams:</label>
                 <!-- Multi-select of the user’s teams (or all if admin) -->
                 <select name="team_ids[]" id="team_ids" multiple size="5">
                 <?php foreach ($myTeams as $t): ?>
