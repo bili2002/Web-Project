@@ -109,6 +109,7 @@ if ($result) {
     <p>You are not assigned to any projects yet.</p>
 <?php endif; ?>
 
+<h2>Your Teams</h2>
 <section id="your-teams">
     <?php if (count($teams) > 0): ?>
         <ul>
