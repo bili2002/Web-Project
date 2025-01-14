@@ -104,14 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtT->close();
 
                 // 2) Insert into user_project_task => link to this project
-                $currentUserId = $_SESSION['user_id'];
                 $linkSql = "
                     INSERT INTO user_project_task
-                    (user_id, project_id, task_id, team_estimated_hours, actual_hours, status)
-                    VALUES (?, ?, ?, ?, 0, 'pending')
+                    (project_id, task_id, team_estimated_hours, actual_hours, status)
+                    VALUES (?, ?, ?, 0, 'pending')
                 ";
                 $stmtLink = $conn->prepare($linkSql);
-                $stmtLink->bind_param("iiii", $currentUserId, $projectId, $newTaskId, $estHours);
+                $stmtLink->bind_param("iii", $projectId, $newTaskId, $estHours);
                 if ($stmtLink->execute()) {
                     $successMsg = "Task '$title' created for project '{$project['title']}'.";
                 } else {

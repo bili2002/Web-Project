@@ -15,7 +15,6 @@ $sql = "
     SELECT 
        upt.id AS link_id,
        upt.project_id,
-       upt.user_id,
        upt.team_estimated_hours,
        upt.actual_hours,
        upt.status,

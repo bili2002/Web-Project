@@ -118,13 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             // Step 2: link that task to this project in user_project_task
             // We'll just assume it belongs to the "current user" or "no user" for now.
             // If you want to assign it to a certain user, set user_id accordingly.
-            $currentUserId = $_SESSION['user_id']; 
             $insLink = $conn->prepare("
                 INSERT INTO user_project_task 
-                (user_id, project_id, task_id, team_estimated_hours, status)
-                VALUES (?, ?, ?, ?, 'pending')
+                (project_id, task_id, team_estimated_hours, status)
+                VALUES (?, ?, ?, 'pending')
             ");
-            $insLink->bind_param("iiii", $currentUserId, $projectId, $newTaskId, $teamEstHours);
+            $insLink->bind_param("iii", $projectId, $newTaskId, $teamEstHours);
             if ($insLink->execute()) {
                 $successMsg = "New task created and linked to this project!";
                 // Refresh the page so we see the newly added task in the list
