@@ -1,23 +1,21 @@
 <?php
 // File: export_plantuml.php
 session_start();
-// Optional: if you need to restrict access
-// require '../../includes/auth_check.php';
+// require '../../includes/auth_check.php'; // if needed
 include '../../includes/db.php';
 
 /**
- * 1) Fetch tasks with parent_id
+ * 1) Fetch tasks
  */
 $tasks = [];
 $sql = "
     SELECT t.id AS task_id,
            t.parent_id,
            t.title,
+           upt.team_estimated_hours,
            upt.status
     FROM tasks t
     JOIN user_project_task upt ON t.id = upt.task_id
-    -- Optionally filter by project, or show all
-    -- WHERE upt.project_id = ?
     ORDER BY t.id ASC
 ";
 $res = $conn->query($sql);
@@ -26,104 +24,160 @@ while ($row = $res->fetch_assoc()) {
 }
 
 /**
- * 2) Build a map of tasksByParent for DFS
+ * 2) Build tasksByParent + store titles
  */
 $tasksByParent = [];
-$taskTitles    = []; // store each task's title for quick lookup
+$taskTitles    = [];
 foreach ($tasks as $task) {
     $parent = $task['parent_id'] ?? 0;
     $tasksByParent[$parent][] = $task;
     $taskTitles[$task['task_id']] = $task['title'];
 }
-// Sort children if you want a stable order
+// (Optional) sort each parent's children
 foreach ($tasksByParent as &$childArr) {
-    usort($childArr, function($a, $b){ 
-        return $a['task_id'] - $b['task_id'];
-    });
+    usort($childArr, function($a,$b){ return $a['task_id'] - $b['task_id']; });
 }
 unset($childArr);
 
 /**
- * 3) Build the PlantUML code in an array
+ * 3) Build PlantUML lines with styling
  */
-$umlLines   = ["@startuml", "' This diagram shows task/subtask relationships"];
+$umlLines = [
+    "@startuml",
+    "skinparam shadowing false",
+    "skinparam rectangle {",
+    "  BorderColor #666666",
+    "  BackgroundColor #ECECEC",
+    "  FontColor #333333",
+    "}",
+    "left to right direction",
+];
 
-/**
- * Recursive function to walk DFS
- */
-function exportPlantUmlDFS($parentId, $tasksByParent, $taskTitles) {
-    if (empty($tasksByParent[$parentId])) {
-        return;
-    }
-    foreach ($tasksByParent[$parentId] as $child) {
-        global $umlLines;
-        $childId    = $child['task_id'];
-        $childTitle = $child['title'];
+// We'll first define each task as a rectangle
+foreach ($tasks as $t) {
+    $tid      = $t['task_id'];
+    $title    = addslashes($t['title']);
+    $status   = $t['status'];
+    $estHours = (int)$t['team_estimated_hours'];
+    
+    // map status -> color
+    $statusColorMap = [
+        'pending'      => '#FFEB8A',
+        'in progress'  => '#FFD580',
+        'done'         => '#C1E1C1'
+    ];
+    $color = $statusColorMap[$status] ?? '#FFFFFF';
 
-        // If parentId != 0, connect parent→child
-        if ($parentId != 0) {
-            // "ParentTitle" --> "ChildTitle"
-            $umlLines[] = '"' . addslashes($taskTitles[$parentId]) . '" --> "' 
-                        . addslashes($childTitle) . '"';
-        }
-        // Recurse
-        exportPlantUmlDFS($childId, $tasksByParent, $taskTitles);
-    }
+    // create a label
+    $label = "$title\\nEst: {$estHours}h";
+    $umlLines[] = "rectangle \"$label\" as T$tid $color";
 }
 
-// 4) Start from parentId=0 => top-level tasks
-exportPlantUmlDFS(0, $tasksByParent, $taskTitles);
+// Then define connections
+function connectDFS($parentId, $tasksByParent) {
+    if (empty($tasksByParent[$parentId])) return;
+    foreach ($tasksByParent[$parentId] as $child) {
+        $childId = $child['task_id'];
+        if ($parentId != 0) {
+            global $umlLines;
+            $umlLines[] = "T$parentId --> T$childId";
+        }
+        connectDFS($childId, $tasksByParent);
+    }
+}
+connectDFS(0, $tasksByParent);
 
-// End
 $umlLines[] = "@enduml";
 
-// Combine into one string
+// Combine into string
 $plantUmlCode = implode("\n", $umlLines);
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Tasks → PlantUML Export</title>
     <meta charset="utf-8">
+    <title>Tasks → PlantUML Export</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; 
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 960px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+        .desc {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 1em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .desc p {
+            margin: 0.5em 0;
+            line-height: 1.5;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        #umlDiagram {
+            text-align: center;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #umlDiagram img {
+            max-width: 100%;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<h1>Tasks → PlantUML Diagram</h1>
+<div class="container">
+    <h1>Tasks → PlantUML Diagram</h1>
 
-<p>This page generates a PlantUML diagram for tasks/subtasks. Below is the raw code, and then the rendered diagram.</p>
+    <div class="desc">
+        <p>This page generates a PlantUML diagram for tasks/subtasks, with improved styling.</p>
+        <p>Below is the raw code, followed by the rendered diagram using an external PlantUML server.</p>
+    </div>
 
-<!-- Show the PlantUML code in a textarea for debugging -->
-<textarea style="width:100%;height:200px;">
-<?php echo htmlspecialchars($plantUmlCode); ?>
-</textarea>
+    <!-- Show the PlantUML code in a textarea for debugging -->
+    <textarea readonly><?php echo htmlspecialchars($plantUmlCode); ?></textarea>
 
-<div id="umlDiagram" style="margin-top:20px; text-align:center;">
-    Loading diagram...
+    <div id="umlDiagram">
+        <p>Loading diagram...</p>
+    </div>
 </div>
 
-<!-- 1) Include the plantuml-encoder library (CDN or local) -->
+<!-- Include the plantuml-encoder library -->
 <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
-
 <script>
-/**
- * 2) We have the raw $plantUmlCode from PHP.
- *    We'll pass it to the library to create an encoded URL,
- *    then we display the resulting <img>.
- */
 (function(){
-    const code = <?php echo json_encode($plantUmlCode); ?>; // safer JSON encode
-    // Encode using plantuml-encoder
+    const code = <?php echo json_encode($plantUmlCode); ?>;
     const encoded = window.plantumlEncoder.encode(code);
-
-    // Create the full URL for the public PlantUML server
     const url = "https://www.plantuml.com/plantuml/svg/" + encoded;
 
-    // Insert an <img> into #umlDiagram
     const diagramDiv = document.getElementById("umlDiagram");
     diagramDiv.innerHTML = "";
     const img = document.createElement("img");
     img.src = url;
     img.alt = "PlantUML Diagram";
-    img.style.maxWidth = "100%";
     diagramDiv.appendChild(img);
 })();
 </script>
