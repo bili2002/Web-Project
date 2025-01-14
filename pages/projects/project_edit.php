@@ -289,7 +289,7 @@ foreach ($myPossibleTeams as $mt) {
             <hr>
 
             <!-- Show currently assigned teams, with a remove link -->
-            <section>
+            <section class = "team-members">
                 <h3>Assigned Teams</h3>
                 <?php if (count($projectTeams) > 0): ?>
                     <ul>
@@ -317,7 +317,7 @@ foreach ($myPossibleTeams as $mt) {
                     <form method="post">
                         <input type="hidden" name="action" value="add_teams">
 
-                        <label>Select teams to add:</label><br>
+                        <label>Select teams to add:</label>
                         <select name="team_ids[]" multiple size="5">
                             <?php foreach ($myTeamsToAdd as $mt): ?>
                                 <option value="<?php echo $mt['id']; ?>">
@@ -325,7 +325,7 @@ foreach ($myPossibleTeams as $mt) {
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <p style="font-size:0.9em;">(Hold Ctrl/Cmd to select multiple)</p>
+                        <p style="font-size:0.9em; text-align:center">(Hold Ctrl/Cmd to select multiple)</p>
                         <button type="submit">Add Selected Teams</button>
                     </form>
                 <?php else: ?>
