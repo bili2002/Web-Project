@@ -4,6 +4,53 @@ session_start();
 require '../../includes/auth_check.php';
 include '../../includes/db.php';
 
+$projectId = (int)$_GET['id'];
+$userId   = $_SESSION['user_id'];
+$userRole = $_SESSION['role'] ?? 'user';  // could be 'admin', 'team_leader', etc.
+
+// We'll get all teams where this user is either the leader or an admin user
+if ($userRole === 'admin') {
+  $canManage = true;
+} else {
+    $sqlTeams = "
+        SELECT t.*
+        FROM team_members tm
+        JOIN teams t ON tm.team_id = t.id
+        WHERE tm.user_id = ?
+    ";
+    $stmtT = $conn->prepare($sqlTeams);
+    $stmtT->bind_param("i", $userId);
+    $stmtT->execute();
+    $resT = $stmtT->get_result();
+    $myTeams = [];
+    while ($rowT = $resT->fetch_assoc()) {
+        $myTeams[] = $rowT;
+    }
+    $stmtT->close();
+
+    $projectTeams = [];
+    $sqlPT = "SELECT team_id FROM project_team WHERE project_id = ?";
+    $stmtT = $conn->prepare($sqlPT);
+    $stmtT->bind_param("i", $projectId);
+    $stmtT->execute();
+    $resT = $stmtT->get_result();
+    while ($rowPT = $resT->fetch_assoc()) {
+        $projectTeams[] = $rowPT['team_id'];
+    }
+    $stmtT->close();
+
+    $canManage = false;
+    foreach ($myTeams as $mt) {
+        if (in_array($mt['id'], $projectTeams)) {
+            $canManage = true;
+            break;
+        }
+    }
+}
+if (!$canManage) {
+    die("Access denied");
+}
+
 // 1. Check if project exists
 if (!isset($_GET['id'])) {
     die("No project specified.");

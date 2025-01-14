@@ -41,6 +41,14 @@ $queries = [
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB",
 
+    "CREATE TABLE IF NOT EXISTS project_team (
+        project_id INT NOT NULL,
+        team_id INT NOT NULL,
+        PRIMARY KEY (project_id, team_id),
+        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB",
+
     "CREATE TABLE IF NOT EXISTS `tasks` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `title` VARCHAR(255) NOT NULL,
