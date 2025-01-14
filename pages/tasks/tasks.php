@@ -9,10 +9,27 @@ $successMsg = '';
 
 // 1) Fetch all projects (for creating a task only)
 $projects = [];
-$pRes = $conn->query("SELECT id, title FROM projects ORDER BY title ASC");
-while ($pr = $pRes->fetch_assoc()) {
-    $projects[] = $pr;
+$currentUserId = $_SESSION['user_id'];
+
+// Fetch projects where the user is part of a team working on them
+$sqlProjects = "
+    SELECT DISTINCT p.id, p.title
+    FROM projects p
+    JOIN project_team pt ON p.id = pt.project_id
+    JOIN team_members tm ON pt.team_id = tm.team_id
+    WHERE tm.user_id = ?
+    ORDER BY p.title ASC
+";
+$stmtProjects = $conn->prepare($sqlProjects);
+$stmtProjects->bind_param("i", $currentUserId);
+$stmtProjects->execute();
+$resultProjects = $stmtProjects->get_result();
+
+while ($project = $resultProjects->fetch_assoc()) {
+    $projects[] = $project;
 }
+
+$stmtProjects->close();
 
 /**
  * 2) Handle CREATE / EDIT / STATUS / DELETE
