@@ -198,7 +198,7 @@ $resPT->close();
                     </div>
                 <?php else: ?>
                     <!-- Just show read-only info, no manage links --> 
-                    <em>You are not a part of the project.</em>
+                    <em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</em>
                 <?php endif; ?>
             <?php endforeach; ?>
             </ul>
