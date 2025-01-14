@@ -92,7 +92,6 @@ if (!empty($successMsg)) {
             <li>
                 <strong><?php echo htmlspecialchars($team['team_name']); ?></strong>
                 (Leader: <?php echo htmlspecialchars($team['leader_name'] ?? 'None'); ?>)
-                —
                 <a href="team_detail.php?id=<?php echo $team['id']; ?>">Manage</a>
             </li>
         <?php endforeach; ?>

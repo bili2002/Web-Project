@@ -4,18 +4,50 @@ session_start();
 require '../../includes/auth_check.php'; // Ensure user is logged in
 include '../../includes/db.php';
 
-// For displaying success/error after creation
+// For displaying success/error
 $errorMsg   = '';
 $successMsg = '';
 
+// 1) Fetch the current user's teams where they are leader OR admin
+//    So we can show these in the multi-select if they are the "owner" of the team
+$userId   = $_SESSION['user_id'];
+$userRole = $_SESSION['role'] ?? 'user';  // could be 'admin', 'team_leader', etc.
+
+// We'll get all teams where this user is either the leader or an admin user
+// If you want strict "leader only," adapt your logic.
+if ($userRole === 'admin') {
+    // Admin can see all teams
+    $sqlTeams = "SELECT * FROM teams ORDER BY id ASC";
+    $stmtT = $conn->prepare($sqlTeams);
+    $stmtT->execute();
+} else {
+    $sqlTeams = "
+        SELECT t.*
+        FROM team_members tm
+        JOIN teams t ON tm.team_id = t.id
+        WHERE tm.user_id = ?
+    ";
+    $stmtT = $conn->prepare($sqlTeams);
+    $stmtT->bind_param("i", $userId);
+    $stmtT->execute();
+}
+$resT = $stmtT->get_result();
+$myTeams = [];
+while ($rowT = $resT->fetch_assoc()) {
+    $myTeams[] = $rowT;
+}
+$stmtT->close();
+
 /**
- * 1) Handle CREATE PROJECT in the same file
+ * 2) Handle CREATE PROJECT (with multi-select teams)
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_project'])) {
-    // Grab form fields
     $projTitle       = $_POST['proj_title']       ?? '';
     $projDescription = $_POST['proj_description'] ?? '';
     $projStatus      = $_POST['proj_status']      ?? 'open';
+
+    // The selected team IDs from the multi-select
+    $selectedTeamIds = isset($_POST['team_ids']) ? $_POST['team_ids'] : [];
 
     // Basic validation
     if (empty($projTitle)) {
@@ -28,28 +60,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_project'])) {
         ");
         $stmt->bind_param("sss", $projTitle, $projDescription, $projStatus);
         if ($stmt->execute()) {
-            $successMsg = "Project '{$projTitle}' created successfully!";
+            $newProjectId = $stmt->insert_id;
+            $stmt->close();
+
+            // Insert each selected team into project_team
+            // This ensures the project -> team link
+            if (!empty($selectedTeamIds)) {
+                $insPT = $conn->prepare("INSERT INTO project_team (project_id, team_id) VALUES (?, ?)");
+                foreach ($selectedTeamIds as $teamId) {
+                    $insPT->bind_param("ii", $newProjectId, $teamId);
+                    if (!$insPT->execute()) {
+                        $errorMsg = "Project created, but linking to team_id=$teamId failed: " . $insPT->error;
+                        break;
+                    }
+                }
+                $insPT->close();
+            }
+
+            if (empty($errorMsg)) {
+                $successMsg = "Project '{$projTitle}' created successfully!";
+            }
         } else {
             $errorMsg = "Error creating project: " . $stmt->error;
+            $stmt->close();
         }
-        $stmt->close();
     }
 }
 
 /**
- * 2) Fetch and Display all projects
+ * 3) Fetch and Display all projects
+ *    We also check which teams are assigned to each project, so we can see if the user can edit
  */
-$sql = "SELECT * FROM projects ORDER BY id DESC";
-$res = $conn->query($sql);
+$sqlProjects = "SELECT * FROM projects ORDER BY id DESC";
+$resP = $conn->query($sqlProjects);
 $projects = [];
-if ($res) {
-    while ($row = $res->fetch_assoc()) {
-        $projects[] = $row;
+if ($resP) {
+    while ($rowP = $resP->fetch_assoc()) {
+        $projects[] = $rowP;
     }
 }
+$resP->close();
+
+// We'll build a map: project_id => [team_ids...]
+$projectTeams = [];
+$sqlPT = "SELECT project_id, team_id FROM project_team";
+$resPT = $conn->query($sqlPT);
+while ($rowPT = $resPT->fetch_assoc()) {
+    $pid = $rowPT['project_id'];
+    $tid = $rowPT['team_id'];
+    if (!isset($projectTeams[$pid])) {
+        $projectTeams[$pid] = [];
+    }
+    $projectTeams[$pid][] = $tid;
+}
+$resPT->close();
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,28 +146,66 @@ if ($res) {
             <button type="button" onclick="openCreateProjectModal()">Create Project</button>
         </section>
 
-        <!-- List of projects -->
-        <main>
-            <?php if (count($projects) > 0): ?>
-                <ul class="project-list">
-                <?php foreach ($projects as $p): ?>
-                    <li class="project-item">
-                        <div class="project-info">
-                            <strong><?php echo htmlspecialchars($p['title']); ?></strong>
-                            <span class="project-status">(Status: <?php echo htmlspecialchars($p['status']); ?>)</span>
-                        </div>
-                        <div class="project-actions">
-                            <a href="project_edit.php?id=<?php echo $p['id']; ?>">Edit Project</a>
-                            |
-                            <a href="project_manage.php?id=<?php echo $p['id']; ?>">Manage Tasks</a>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p class="no-projects">No projects found.</p>
-            <?php endif; ?>
-        </main>
+    <!-- List of projects -->
+    <main>
+        <?php if (count($projects) > 0): ?>
+            <ul class="project-list">
+            <?php foreach ($projects as $p): 
+                $pid       = $p['id'];
+                $projTeams = $projectTeams[$pid] ?? []; // array of team_ids
+                // We check if the user leads ANY of those teams => can edit
+                // If user is admin, also can edit
+                $canEditOrManage = false;
+                if ($userRole === 'admin') {
+                    $canEditOrManage = true;
+                } else {
+                    // If the user's leader_id is in $projTeams
+                    // Actually we stored team IDs, so we must see if user leads any of them
+                    foreach ($myTeams as $mt) {
+                        $myTeamId   = $mt['id'];
+                        if (in_array($myTeamId, $projTeams)) {
+                            // user leads this team => can manage
+                            $canEditOrManage = true;
+                            break;
+                        }   
+                    }   
+                }   
+            ?>  
+            <li class="project-item">
+                <div class="project-info">
+                    <strong><?php echo htmlspecialchars($p['title']); ?></strong>
+                    <span class="project-status">(Status: <?php echo htmlspecialchars($p['status']); ?>)</span>
+                    <br>
+                </div>
+                    
+                Assigned Teams:
+                <?php 
+                if (count($projTeams) > 0) {
+                    echo implode(", ", $projTeams); // or fetch actual names if you like
+                } else {
+                    echo "(none)";
+                }   
+                ?>  
+                <br>
+
+                <!-- If user can't manage/edit, hide links --> 
+                <?php if ($canEditOrManage): ?>
+                    <div class="project-actions">
+                        <!-- Link to edit project details -->
+                        <a href="project_edit.php?id=<?php echo $p['id']; ?>">Edit Project</a>
+                        <!-- Link to manage tasks for this project -->
+                        <a href="project_manage.php?id=<?php echo $p['id']; ?>">Manage Tasks</a>
+                    </div>
+                <?php else: ?>
+                    <!-- Just show read-only info, no manage links --> 
+                    <em>You are not a part of the project.</em>
+                <?php endif; ?>
+            <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p class="no-projects">No projects found.</p>
+        <?php endif; ?>
+    </main>
 
         <!-- Back to Dashboard -->
         <footer>
@@ -138,6 +241,19 @@ if ($res) {
                         <option value="completed">Completed</option>
                     </select>
                 </div>
+
+            <div class="form-group">
+                <label for="team_ids">Assign Teams:</label>
+                <!-- Multi-select of the user’s teams (or all if admin) -->
+                <select name="team_ids[]" id="team_ids" multiple size="5">
+                <?php foreach ($myTeams as $t): ?>
+                    <option value="<?php echo $t['id']; ?>">
+                        <?php echo htmlspecialchars($t['team_name'] . " (ID:" . $t['id'] . ")"); ?>
+                    </option>
+                <?php endforeach; ?>
+                </select>
+                <p style="font-size:0.9em;">Hold Ctrl/Cmd to select multiple.</p>
+            </div>
 
                 <button type="submit">Create</button>
             </form>

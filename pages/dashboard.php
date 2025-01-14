@@ -46,17 +46,19 @@ $stmtProjects->close();
 /**
  * 3) Team membership
  */
-$teamsSql = "
-    SELECT tm.team_id, t.team_name
-    FROM team_members tm
-    JOIN teams t ON tm.team_id = t.id
-    WHERE tm.user_id = ?
-";
-$stmtTeams = $conn->prepare($teamsSql);
-$stmtTeams->bind_param("i", $userId);
-$stmtTeams->execute();
-$teamsResult = $stmtTeams->get_result();
-$stmtTeams->close();
+$result = $conn->query("
+    SELECT t.*, u.username AS leader_name
+    FROM teams t
+    LEFT JOIN users u ON t.leader_id = u.id
+    ORDER BY t.id DESC
+");
+
+$teams = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $teams[] = $row;
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -108,16 +110,15 @@ $stmtTeams->close();
 <?php endif; ?>
 
 <section id="your-teams">
-    <h2>Your Teams</h2>
-    <?php if ($teamsResult->num_rows > 0): ?>
+    <?php if (count($teams) > 0): ?>
         <ul>
-            <?php while ($team = $teamsResult->fetch_assoc()): ?>
+            <?php foreach ($teams as $team): ?>
                 <li>
                     <strong><?php echo htmlspecialchars($team['team_name']); ?></strong>
-                    (Leader: elitsa) —
-                    <a href="teams/team_detail.php?id=<?php echo $team['team_id']; ?>">Manage</a>
+                    (Leader:  <?php echo htmlspecialchars($team['leader_name'] ?? 'None'); ?>)
+                    <a href="teams/team_detail.php?id=<?php echo $team['id']; ?>">Manage</a>
                 </li>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </ul>
     <?php else: ?>
         <p>You are not a member of any teams yet.</p>
