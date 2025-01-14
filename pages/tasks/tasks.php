@@ -328,7 +328,7 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
     </style>
 </head>
 <body>
-<h1>All Tasks (DFS with Subtasks)</h1>
+<h1>All Tasks</h1>
 
 <?php
 if ($errorMsg)   echo "<p class='error'>$errorMsg</p>";
