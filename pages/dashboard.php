@@ -36,7 +36,8 @@ $projectsSql = "
     SELECT DISTINCT p.*
     FROM projects p
     JOIN user_project_task upt ON p.id = upt.project_id
-    JOIN team_members tm ON tm.team_id = team_id
+    JOIN project_team pt ON pt.project_id = upt.project_id
+    JOIN team_members tm ON tm.team_id = pt.team_id
     WHERE tm.user_id = ?
     ORDER BY p.created_at DESC
 ";
