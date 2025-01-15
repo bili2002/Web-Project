@@ -1,0 +1,188 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  /* Основно заглавие */
+  h1 {
+    color: #8B4513; /* Тъмен цвят за заглавия */
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Лека сянка */
+    text-align: center;
+  }
+  
+  /* Съобщения за успех и грешка */
+  p.success {
+    background-color: #FF7F50;
+    color: #fff;
+    border: 1px solid #8B4513;
+    padding: 10px;
+    margin: 10px 20px;
+    border-radius: 4px;
+  }
+  
+  p.error {
+    background-color: #FF7F50;
+    color: #fff;
+    border: 1px solid #8B4513;
+    padding: 10px;
+    margin: 10px 20px;
+    border-radius: 4px;
+  }
+  
+  /* Таблици */
+  table {
+    width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px solid #ddd;
+  }
+  
+  table thead {
+    background-color: #FF7F50;
+    color: #fff;
+  }
+  
+  table th,
+  table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    vertical-align: middle; /* Центриране по височина */
+  }
+  
+  /* Редове през един със светъл фон */
+  table tr:nth-child(even) {
+    background-color: #f4f4f4;
+  }
+  
+  /* Подравняване на колоните за Status и Actions */
+  table th:nth-child(7),
+  table td:nth-child(7),
+  table th:nth-child(8),
+  table td:nth-child(8) {
+    text-align: center;
+    white-space: nowrap; /* За да не се чупят на нов ред */
+  }
+  
+  /* Правим формата за ъпдейт на статуса да е inline, за да е по-стегнато */
+  table td form {
+    display: inline-block;
+    margin: 0;
+  }
+  
+  /* Правим бутоните в Actions да са на един ред (ако искаме) */
+  table td .actions {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  /* Ако предпочитате бутоните и линковете да са отделени с " | ",
+     може да пропуснете .actions и да държите отделни елементи. 
+     Но inline-flex е удобен вариант. */
+  
+  /* Бутони */
+  button {
+    background-color: #FF7F50; /* Оранжев цвят */
+    color: #fff;              /* Бял текст */
+    border: none;            /* Без рамка */
+    padding: 12px 20px;      /* Повече вътрешни отстояния */
+    cursor: pointer;
+    border-radius: 8px;      /* По-закръглени ъгли */
+    font-size: 16px;         /* По-голям шрифт */
+    font-weight: bold;       /* Удебелен шрифт */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Лека сянка */
+    transition: background-color 0.3s ease;   /* Анимация при hover */
+  }
+
+  
+  button:hover {
+    background-color: #8B4513;
+  }
+
+  .create-task-container {
+    text-align: center;  /* Центрира съдържанието вътре в контейнера */
+    margin: 20px 0;      /* Малко отстояние отгоре и отдолу */
+  }
+  
+  /* Линкове */
+  a {
+    color: #8B4513;
+    text-decoration: none;
+    margin-right: 5px;
+  }
+  
+  a:hover {
+    color: #FF7F50;
+  }
+  
+  /* Модални прозорци */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(221, 221, 221, 0.7); /* #ddd с прозрачност */
+  }
+  
+  .modal-backdrop.active {
+    display: block;
+  }
+  
+  /* Съдържанието на модала */
+  .modal {
+    position: relative;
+    background-color: #fff;
+    width: 500px;
+    max-width: 90%;
+    margin: 100px auto;
+    padding: 20px;
+    border: 1px solid #8B4513;
+    border-radius: 5px;
+  }
+  
+  /* Затварящ бутон (x) в горния десен ъгъл */
+  .close-btn {
+    float: right;
+    cursor: pointer;
+    color: #8B4513;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  /* Формови елементи */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: inline-block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #8B4513;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    background-color: #fff;
+  }
+  
+  .back-link {
+    margin-left: 20px; /* или колкото искате да го отместите */
+    display: inline-block; /* за да може margin-left да работи стабилно */
+    font-weight: bold;
+  }
+  

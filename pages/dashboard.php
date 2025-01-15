@@ -72,6 +72,7 @@ if ($result) {
 
 <!-- 1) Tasks assigned to the user -->
 <h2>Your Tasks</h2>
+<section>
 <?php if ($tasksResult->num_rows > 0): ?>
     <ul>
         <?php while ($task = $tasksResult->fetch_assoc()): ?>
@@ -93,8 +94,10 @@ if ($result) {
 <?php else: ?>
     <p>No tasks assigned yet.</p>
 <?php endif; ?>
+</section>
 
 <h2>Your Projects</h2>
+<section>
 <?php if ($projectsResult->num_rows > 0): ?>
     <ul>
         <?php while ($proj = $projectsResult->fetch_assoc()): ?>
@@ -108,6 +111,7 @@ if ($result) {
 <?php else: ?>
     <p>You are not assigned to any projects yet.</p>
 <?php endif; ?>
+</section>
 
 <h2>Your Teams</h2>
 <section id="your-teams">
@@ -128,9 +132,9 @@ if ($result) {
 
 <!-- Basic nav links -->
  <section id = "basic-links">
-<a href="teams/teams.php">Manage Teams</a> |
-<a href="projects/projects.php">Projects</a> |
-<a href="tasks/tasks.php">Tasks</a> |
+<a href="teams/teams.php">Manage Teams</a> 
+<a href="projects/projects.php">Projects</a> 
+<a href="tasks/tasks.php">Tasks</a>  
 <a href="auth/logout.php">Logout</a>
     </section>
 

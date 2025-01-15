@@ -296,10 +296,10 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
              . addslashes($ts['description']) . "', '"
              . addslashes($ts['status']) . "', "
              . (int)$ts['team_estimated_hours']
-             . ")\">Edit</button> |\n";
+             . ")\">Edit</button> \n";
 
         // Subtask
-        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> |\n";
+        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> \n";
 
         // Delete
         echo "    <a href='?action=delete&id={$ts['task_id']}' onclick=\"return confirm('Delete Task #{$ts['task_id']}?');\">Delete</a>\n";
@@ -315,38 +315,7 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
 <html>
 <head>
     <title>Tasks</title>
-    <style>
-        .error { color: red; }
-        .success { color: green; }
-        table { border-collapse: collapse; width:100%; }
-        td, th { border:1px solid #ccc; padding: 8px; }
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-backdrop.active { display: flex; }
-        .modal {
-            background: #fff;
-            width: 420px;
-            padding: 20px;
-            position: relative;
-            border-radius: 8px;
-        }
-        .close-btn {
-            position: absolute; 
-            top:5px; 
-            right:10px; 
-            cursor: pointer; 
-            font-weight: bold;
-        }
-        .close-btn:hover { color:#999; }
-        .form-group { margin-bottom:10px; }
-        label { font-weight: bold; display:block; margin-bottom:5px; }
-    </style>
+    <link rel="stylesheet" href="../../css/tasks/tasks.css">
 </head>
 <body>
 <h1>All Tasks</h1>
@@ -356,8 +325,13 @@ if ($errorMsg)   echo "<p class='error'>$errorMsg</p>";
 if ($successMsg) echo "<p class='success'>$successMsg</p>";
 ?>
 
-<button type="button" onclick="openCreateModal()">Create Task</button>
-<br><br>
+
+
+<!-- Във вашия HTML, обгърнете бутона в <div class="create-task-container">: -->
+<div class="create-task-container">
+  <button type="button" onclick="openCreateModal()">Create Task</button>
+</div>
+
 
 <table>
   <thead>
@@ -377,7 +351,7 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
   </tbody>
 </table>
 
-<p><a href="../dashboard.php">Back to Dashboard</a></p>
+<p><a href="../dashboard.php" class="back-link"> < Back to Dashboard</a></p>
 
 <!-- CREATE TASK MODAL -->
 <div class="modal-backdrop" id="createModalBackdrop">
@@ -413,7 +387,7 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
         <input type="number" name="create_estimated_hours" id="create_estimated_hours" min="0" value="0">
       </div>
 
-      <button type="submit">Create Task</button>
+      <button id = "create-task" type="submit" >Create Task</button>
     </form>
   </div>
 </div>
