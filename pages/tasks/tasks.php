@@ -216,98 +216,130 @@ if ($action === 'delete' && $delTaskId > 0) {
 /**
  * 4) Build the DFS data
  */
-$allTasks = [];
-$sql = "
+
+$userId   = $_SESSION['user_id'];
+$userRole = $_SESSION['role'] ?? 'user';
+
+// If admin => see all tasks. Otherwise, filter to projects the user is assigned to.
+if ($userRole === 'admin') {
+    $sql = "
+        SELECT
+          t.id AS task_id,
+          t.parent_id,
+          t.title,
+          t.description,
+          upt.team_estimated_hours,
+          upt.actual_hours,
+          upt.status,
+          p.title AS project_title,
+          upt.id AS link_id
+        FROM user_project_task upt
+        JOIN tasks t      ON upt.task_id    = t.id
+        JOIN projects p   ON upt.project_id = p.id
+        ORDER BY p.id, t.id
+    ";
+    $stmt = $conn->query($sql);
+} else {
+    // Non-admin => join through project_team + team_members to ensure we only see
+    // tasks from projects assigned to teams that the user is part of
+    $sql = "
     SELECT
       t.id AS task_id,
       t.parent_id,
       t.title,
       t.description,
-      p.title AS project_title,
-      upt.id AS link_id,
       upt.team_estimated_hours,
       upt.actual_hours,
-      upt.status
-    FROM tasks t
-    JOIN user_project_task upt ON t.id = upt.task_id
-    JOIN projects p ON p.id = upt.project_id
-    ORDER BY t.id ASC
-";
-$res = $conn->query($sql);
+      upt.status,
+      p.title AS project_title,
+      upt.id AS link_id
+
+    FROM user_project_task upt
+    JOIN tasks t         ON upt.task_id = t.id
+    JOIN projects p      ON upt.project_id = p.id
+    -- Ensure user is in a team assigned to that project:
+    JOIN project_team pt ON pt.project_id = p.id
+    JOIN team_members tm ON tm.team_id    = pt.team_id
+    WHERE tm.user_id = ?
+    ORDER BY p.id, t.id
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $stmt = $stmt->get_result();
+}
 
 $tasksByParent = [];
-while ($row = $res->fetch_assoc()) {
-    $pId = $row['parent_id'] ?? 0;
-    $tasksByParent[$pId][] = $row;
-}
-
-// (Optional) sort each parent's children by task_id
-foreach ($tasksByParent as &$grp) {
-    usort($grp, function($a, $b){
-        return $a['task_id'] - $b['task_id'];
-    });
-}
-unset($grp);
+if ($stmt) {
+    while ($row = $stmt->fetch_assoc()) {
+        $pId = $row['parent_id'] ?? 0;
+        $tasksByParent[$pId][] = $row;
+    }
+    if ($userRole === 'admin') {
+        $stmt->close();
+    } else {
+        // if we used bind_param/execute, $stmt is a mysqli_result
+        // or check how you handle $stmt differently
+    }
+} 
 
 /**
  * 5) Print DFS
  */
 function printTasksDFS($parentId, $level, $tasksByParent) {
-    if (empty($tasksByParent[$parentId])) return;
+  if (empty($tasksByParent[$parentId])) return;
 
-    foreach ($tasksByParent[$parentId] as $ts) {
-        $indent = str_repeat('— ', $level);
+  foreach ($tasksByParent[$parentId] as $ts) {
+      $indent = str_repeat('— ', $level);
 
-        echo "<tr>\n";
-        echo "  <td>{$ts['task_id']}</td>\n";
-        echo "  <td>" . htmlspecialchars($ts['project_title']) . "</td>\n";
-        echo "  <td>" . $indent . htmlspecialchars($ts['title']) . "</td>\n";
-        echo "  <td>" . nl2br(htmlspecialchars($ts['description'])) . "</td>\n";
-        echo "  <td>" . (int)$ts['team_estimated_hours'] . "</td>\n";
-        echo "  <td>" . (int)$ts['actual_hours'] . "</td>\n";
+      echo "<tr>\n";
+      echo "  <td>{$ts['task_id']}</td>\n";
+      echo "  <td>" . htmlspecialchars($ts['project_title']) . "</td>\n";
+      echo "  <td>" . $indent . htmlspecialchars($ts['title']) . "</td>\n";
+      echo "  <td>" . nl2br(htmlspecialchars($ts['description'])) . "</td>\n";
+      echo "  <td>" . (int)$ts['team_estimated_hours'] . "</td>\n";
+      echo "  <td>" . (int)$ts['actual_hours'] . "</td>\n";
 
-        // Status cell
-        echo "  <td>\n";
-        echo "    <form method='post' style='margin:0;' onsubmit='return handleStatusChange({$ts['link_id']})'>\n";
-        echo "      <input type='hidden' name='crud_action' value='update_status'>\n";
-        echo "      <input type='hidden' name='link_id' value='{$ts['link_id']}'>\n";
-        echo "      <input type='hidden' name='new_actual_hours' id='actualHidden{$ts['link_id']}' value='" 
-             . (int)$ts['actual_hours'] . "'>\n";
-        echo "      <select name='new_status' id='statusSelect{$ts['link_id']}'>\n";
-        echo "        <option value='pending' " 
-             . ($ts['status'] === 'pending' ? 'selected' : '') . ">Pending</option>\n";
-        echo "        <option value='in progress' " 
-             . ($ts['status'] === 'in progress' ? 'selected' : '') . ">In Progress</option>\n";
-        echo "        <option value='done' " 
-             . ($ts['status'] === 'done' ? 'selected' : '') . ">Done</option>\n";
-        echo "      </select>\n";
-        echo "      <button type='submit'>Update</button>\n";
-        echo "    </form>\n";
-        echo "  </td>\n";
+      // Status cell
+      echo "  <td>\n";
+      echo "    <form method='post' style='margin:0;' onsubmit='return handleStatusChange({$ts['link_id']})'>\n";
+      echo "      <input type='hidden' name='crud_action' value='update_status'>\n";
+      echo "      <input type='hidden' name='link_id' value='{$ts['link_id']}'>\n";
+      echo "      <input type='hidden' name='new_actual_hours' id='actualHidden{$ts['link_id']}' value='" 
+           . (int)$ts['actual_hours'] . "'>\n";
+      echo "      <select name='new_status' id='statusSelect{$ts['link_id']}'>\n";
+      echo "        <option value='pending' " 
+           . ($ts['status'] === 'pending' ? 'selected' : '') . ">Pending</option>\n";
+      echo "        <option value='in progress' " 
+           . ($ts['status'] === 'in progress' ? 'selected' : '') . ">In Progress</option>\n";
+      echo "        <option value='done' " 
+           . ($ts['status'] === 'done' ? 'selected' : '') . ">Done</option>\n";
+      echo "      </select>\n";
+      echo "      <button type='submit'>Update</button>\n";
+      echo "    </form>\n";
+      echo "  </td>\n";
 
-        // Actions
-        echo "  <td>\n";
-        // Edit (pass linkId, current status, currentEst if you want to show/hide in JS)
-        echo "    <button type='button' onclick=\"openEditModal("
-             . $ts['task_id'] . ", " 
-             . $ts['link_id'] . ", '"
-             . addslashes($ts['title']) . "', '"
-             . addslashes($ts['description']) . "', '"
-             . addslashes($ts['status']) . "', "
-             . (int)$ts['team_estimated_hours']
-             . ")\">Edit</button> \n";
+      // Actions
+      echo "  <td>\n";
+      echo "    <button type='button' onclick=\"openEditModal("
+           . $ts['task_id'] . ", " 
+           . $ts['link_id'] . ", '"
+           . addslashes($ts['title']) . "', '"
+           . addslashes($ts['description']) . "', '"
+           . addslashes($ts['status']) . "', "
+           . (int)$ts['team_estimated_hours']
+           . ")\">Edit</button> \n";
 
-        // Subtask
-        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> \n";
+      echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> \n";
 
-        // Delete
-        echo "    <a href='?action=delete&id={$ts['task_id']}' onclick=\"return confirm('Delete Task #{$ts['task_id']}?');\">Delete</a>\n";
-        echo "  </td>\n";
+      echo "    <a href='?action=delete&id={$ts['task_id']}' onclick=\"return confirm('Delete Task #{$ts['task_id']}?');\">Delete</a>\n";
+      echo "  </td>\n";
 
-        echo "</tr>\n";
+      echo "</tr>\n";
 
-        printTasksDFS($ts['task_id'], $level+1, $tasksByParent);
-    }
+      // Recurse
+      printTasksDFS($ts['task_id'], $level+1, $tasksByParent);
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -325,10 +357,11 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
 ?>
 
 
-
-<!-- Във вашия HTML, обгърнете бутона в <div class="create-task-container">: -->
 <div class="create-task-container">
   <button type="button" onclick="openCreateModal()">Create Task</button>
+  <button type="button" onclick="window.location.href = 'export_plantuml.php';">Export PlantUML</button> 
+  <button type="button" onclick="window.location.href = 'import_csv.php';">Import CSV</button> 
+  <button type="button" onclick="window.location.href = 'export_csv.php';">Export CSV</button> 
 </div>
 
 
