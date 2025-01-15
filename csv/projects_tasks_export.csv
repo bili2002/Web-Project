@@ -1,0 +1,8 @@
+project_title,project_desc,project_status,task_title,task_desc,parent_task_title,hours
+"Elis project2","","open","interesting task","task","",1
+"My project2","system for projecting","open","Login","Login me","",3
+"My project2","system for projecting","open","Login form","","Login",1
+"My project2","system for projecting","open","Login CSS","","Login",2
+"My project2","system for projecting","open","Register","reg","",2
+"My project2","system for projecting","open","Css","Css","Login CSS",2
+"My project2","system for projecting","open","form","","Register",1

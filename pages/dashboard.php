@@ -11,14 +11,16 @@ $userId = $_SESSION['user_id'];
  *    We'll join user_project_task (the link table) with tasks and projects
  */
 $tasksSql = "
-    SELECT 
+    SELECT DISTINCT
         upt.*,
         t.title AS task_title, 
         p.title AS project_title
     FROM user_project_task upt
     JOIN tasks t ON upt.task_id = t.id
-    JOIN projects p ON upt.project_id = p.id
-    WHERE upt.user_id = ?
+    JOIN projects p on p.id = upt.project_id
+    JOIN project_team pt on pt.project_id = upt.project_id
+    JOIN team_members tm ON tm.team_id = pt.team_id
+    WHERE tm.user_id = ?
     ORDER BY upt.status ASC, upt.created_at ASC
 ";
 $stmtTasks = $conn->prepare($tasksSql);
@@ -34,7 +36,8 @@ $projectsSql = "
     SELECT DISTINCT p.*
     FROM projects p
     JOIN user_project_task upt ON p.id = upt.project_id
-    WHERE upt.user_id = ?
+    JOIN team_members tm ON tm.team_id = team_id
+    WHERE tm.user_id = ?
     ORDER BY p.created_at DESC
 ";
 $stmtProjects = $conn->prepare($projectsSql);
@@ -81,7 +84,7 @@ if ($result) {
                 <strong><?php echo htmlspecialchars($task['task_title']); ?></strong>
 
                 <!-- Associated Project -->
-                (Project: <?php echo htmlspecialchars($task['project_title']); ?>)
+                Project: <?php echo htmlspecialchars($task['project_title']); ?>
 
                 <!-- Status -->
                 - Status: <?php echo htmlspecialchars($task['status']); ?>
@@ -103,7 +106,7 @@ if ($result) {
         <?php while ($proj = $projectsResult->fetch_assoc()): ?>
             <li>
                 <strong><?php echo htmlspecialchars($proj['title']); ?></strong>
-                - Status: <?php echo htmlspecialchars($proj['status']); ?>
+                Status: <?php echo htmlspecialchars($proj['status']); ?>
                 - Created: <?php echo htmlspecialchars($proj['created_at']); ?>
             </li>
         <?php endwhile; ?>
@@ -120,7 +123,7 @@ if ($result) {
             <?php foreach ($teams as $team): ?>
                 <li>
                     <strong><?php echo htmlspecialchars($team['team_name']); ?></strong>
-                    (Leader:  <?php echo htmlspecialchars($team['leader_name'] ?? 'None'); ?>)
+                    Leader:  <?php echo htmlspecialchars($team['leader_name'] ?? 'None'); ?>
                     <a href="teams/team_detail.php?id=<?php echo $team['id']; ?>">Manage</a>
                 </li>
             <?php endforeach; ?>

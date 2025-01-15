@@ -36,7 +36,6 @@ $queries = [
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `title` VARCHAR(255) NOT NULL,
         `description` TEXT,
-        `hours_estimated` INT DEFAULT 0,
         `status` VARCHAR(50) DEFAULT 'open',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB",
@@ -63,15 +62,12 @@ $queries = [
 
     "CREATE TABLE IF NOT EXISTS `user_project_task` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `user_id` INT NOT NULL,
         `project_id` INT NOT NULL,
         `task_id` INT NOT NULL,
         `team_estimated_hours` INT DEFAULT 0,
         `actual_hours` INT DEFAULT 0,
         `status` VARCHAR(50) DEFAULT 'pending',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
-            ON UPDATE CASCADE ON DELETE CASCADE,
         FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
         FOREIGN KEY (`task_id`) REFERENCES `tasks`(`id`)
