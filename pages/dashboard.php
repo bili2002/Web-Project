@@ -50,19 +50,25 @@ $stmtProjects->close();
 /**
  * 3) Team membership
  */
-$result = $conn->query("
-    SELECT t.*, u.username AS leader_name
+$teamsSql = "
+    SELECT t.*
     FROM teams t
-    LEFT JOIN users u ON t.leader_id = u.id
+    JOIN team_members tm ON tm.team_id = t.id
+    WHERE tm.user_id = ?
     ORDER BY t.id DESC
-");
+";
+$stmtTeams = $conn->prepare($teamsSql);
+$stmtTeams->bind_param("i", $userId);
+$stmtTeams->execute();
 
+$teamsResult = $stmtTeams->get_result();
 $teams = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
+if ($teamsResult) {
+    while ($row = $teamsResult->fetch_assoc()) {
         $teams[] = $row;
     }
 }
+$stmtTeams->close();
 
 ?>
 <!DOCTYPE html>
