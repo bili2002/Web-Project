@@ -59,14 +59,17 @@ foreach ($tasks as $t) {
     $title    = addslashes($t['title']);
     $status   = $t['status'];
     $estHours = (int)$t['team_estimated_hours'];
-    
-    // map status -> color
-    $statusColorMap = [
-        'pending'      => '#FFEB8A',
-        'in progress'  => '#FFD580',
-        'done'         => '#C1E1C1'
-    ];
-    $color = $statusColorMap[$status] ?? '#FFFFFF';
+
+    // map estimated hours to color
+    if ($estHours < 2) {
+        $color = "#C1E1C1"; // green for less than 2 hours
+    } elseif ($estHours <= 4) {
+        $color = "#FFD580"; // orange for 3-4 hours
+    } elseif ($estHours > 5) {
+        $color = "#FF6F61"; // red for more than 5 hours
+    } else {
+        $color = "#FFFFFF"; // default white
+    }
 
     // create a label
     $label = "$title\\nEst: {$estHours}h";
