@@ -236,9 +236,9 @@ $resPT->close();
                 <div class="form-group">
                     <label for="proj_status">Status:</label>
                     <select name="proj_status" id="proj_status">
-                        <option value="open">Open</option>
-                        <option value="in progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="version 1">Version 1</option>
+                        <option value="version 2">Version 2</option>
+                        <option value="version 3">Version 3</option>
                     </select>
                 </div>
 

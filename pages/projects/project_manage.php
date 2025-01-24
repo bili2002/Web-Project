@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $linkSql = "
                     INSERT INTO user_project_task
                     (project_id, task_id, team_estimated_hours, actual_hours, status)
-                    VALUES (?, ?, ?, 0, 'pending')
+                    VALUES (?, ?, ?, 0, 'version 1')
                 ";
                 $stmtLink = $conn->prepare($linkSql);
                 $stmtLink->bind_param("iii", $projectId, $newTaskId, $estHours);
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $rowSt = $resSt->fetch_assoc();
             $stmtSt->close();
 
-            if ($rowSt && $rowSt['status'] === 'pending') {
+            if ($rowSt && $rowSt['status'] === 'version 1') {
                 // update the estimate
                 $updEst = $conn->prepare("
                     UPDATE user_project_task
@@ -181,13 +181,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // C) UPDATE STATUS inline (prompt for actual hours if done)
     elseif ($crudAction === 'update_status') {
         $linkId    = (int)($_POST['link_id']          ?? 0);
-        $newStatus = $_POST['new_status']            ?? 'pending';
+        $newStatus = $_POST['new_status']            ?? 'version 1';
         $actual    = (int)($_POST['new_actual_hours'] ?? 0);
 
         if ($linkId < 1) {
             $errorMsg = "Invalid link ID for status update.";
         } else {
-            if ($newStatus !== 'done') {
+            if ($newStatus !== 'version 3') {
                 $actual = 0;  // reset actual if not done
             }
             $updSt = $conn->prepare("
@@ -291,12 +291,12 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
         echo "      <input type='hidden' name='link_id' value='{$ts['link_id']}'>\n";
         echo "      <input type='hidden' name='new_actual_hours' id='actualHidden{$ts['link_id']}' value='" . (int)$ts['actual_hours'] . "'>\n";
         echo "      <select name='new_status' id='statusSelect{$ts['link_id']}'>\n";
-        echo "        <option value='pending' " 
-             . ($ts['status'] === 'pending' ? 'selected' : '') . ">Pending</option>\n";
-        echo "        <option value='in progress' " 
-             . ($ts['status'] === 'in progress' ? 'selected' : '') . ">In Progress</option>\n";
-        echo "        <option value='done' " 
-             . ($ts['status'] === 'done' ? 'selected' : '') . ">Done</option>\n";
+        echo "        <option value='version 1' " 
+             . ($ts['status'] === 'version 1' ? 'selected' : '') . ">Version 1</option>\n";
+        echo "        <option value='version 2' " 
+             . ($ts['status'] === 'version 2' ? 'selected' : '') . ">Version 2</option>\n";
+        echo "        <option value='version 3' " 
+             . ($ts['status'] === 'version 3' ? 'selected' : '') . ">Version 3</option>\n";
         echo "      </select>\n";
         echo "      <button type='submit'>Update</button>\n";
         echo "    </form>\n";
@@ -452,7 +452,7 @@ function openEditModal(taskId, linkId, title, desc, status, est) {
   document.getElementById('edit_estimated_hours').value = est || 0;
 
   // If status == 'pending', show the estimated hours field
-  if (status === 'pending') {
+  if (status === 'version 1') {
     document.getElementById('editEstContainer').style.display = 'block';
   } else {
     document.getElementById('editEstContainer').style.display = 'none';
@@ -469,7 +469,7 @@ function handleStatusChange(linkId){
   var sel       = document.getElementById("statusSelect"+linkId);
   var hiddenFld = document.getElementById("actualHidden"+linkId);
 
-  if (sel.value === 'done') {
+  if (sel.value === 'version 3') {
     var hours = prompt("Enter actual hours:", "0");
     if (hours === null) { 
       return false; // user canceled
