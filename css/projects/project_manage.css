@@ -1,0 +1,165 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Основно заглавие */
+h1 {
+    color: #8B4513;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+/* Съобщения за успех и грешка */
+p.success{
+    background-color:white ;
+    color: black;
+    border: 1px solid green;
+    padding: 10px;
+    margin: 10px 20px;
+    border-radius: 4px;
+}
+
+p.error {
+    
+    background-color:white ;
+    color: black;
+    border: 1px solid red;
+    padding: 10px;
+    margin: 10px 20px;
+    border-radius: 4px;
+}
+
+/* Таблици */
+table {
+    width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+table thead {
+    background-color: #FF7F50;
+    color: #fff;
+}
+
+table th,
+table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+table tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+
+table th:nth-child(7),
+table td:nth-child(7),
+table th:nth-child(8),
+table td:nth-child(8) {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Центриране на "Create Task" бутона */
+.create-task-container {
+    text-align: center;
+    margin: 20px 0; /* Отстояние отгоре и отдолу */
+}
+
+button {
+    background-color: #FF7F50;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #8B4513;
+}
+
+/* Линкове */
+a {
+    color: #8B4513;
+    text-decoration: none;
+    margin-right: 5px;
+}
+
+a:hover {
+    color: #FF7F50;
+}
+
+/* Модални прозорци */
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(221, 221, 221, 0.7);
+}
+
+.modal-backdrop.active {
+    display: block;
+}
+
+.modal {
+    position: relative;
+    background-color: #fff;
+    width: 500px;
+    max-width: 90%;
+    margin: 100px auto;
+    padding: 20px;
+    border: 1px solid #8B4513;
+    border-radius: 5px;
+}
+
+.close-btn {
+    float: right;
+    cursor: pointer;
+    color: #8B4513;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: inline-block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #8B4513;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    background-color: #fff;
+}
+
+.back-link {
+    margin-left: 20px;
+    display: inline-block;
+    font-weight: bold;
+}

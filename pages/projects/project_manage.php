@@ -312,10 +312,10 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
              . addslashes($ts['description']) . "', '"
              . addslashes($ts['status']) . "', "
              . (int)$ts['team_estimated_hours']
-             . ")\">Edit</button> |\n";
+             . ")\">Edit</button> \n";
 
         // Subtask
-        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> |\n";
+        echo "    <button type='button' onclick=\"openSubtaskModal({$ts['task_id']})\">Subtask</button> \n";
 
         // Delete
         echo "    <a href='?action=delete&task_id={$ts['task_id']}&id={$_GET['id']}'"
@@ -334,38 +334,7 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
 <html>
 <head>
     <title>Manage Tasks for "<?php echo htmlspecialchars($project['title']); ?>"</title>
-    <style>
-        .error { color:red; }
-        .success { color:green; }
-        table { border-collapse: collapse; width: 100%; }
-        td, th { border:1px solid #ccc; padding:8px; }
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-backdrop.active { display: flex; }
-        .modal {
-            background: #fff;
-            width: 420px;
-            padding: 20px;
-            position: relative;
-            border-radius: 8px;
-        }
-        .close-btn {
-            position: absolute; 
-            top:5px; 
-            right:10px; 
-            cursor: pointer; 
-            font-weight: bold;
-        }
-        .close-btn:hover { color:#999; }
-        .form-group { margin-bottom:10px; }
-        label { display:block; font-weight:bold; margin-bottom:5px; }
-    </style>
+    <link rel="stylesheet" href="../../css/projects/project_manage.css">
 </head>
 <body>
 <h1>Manage Tasks for Project: <?php echo htmlspecialchars($project['title']); ?></h1>
@@ -375,8 +344,9 @@ if ($errorMsg)   echo "<p class='error'>$errorMsg</p>";
 if ($successMsg) echo "<p class='success'>$successMsg</p>";
 ?>
 
-<button type="button" onclick="openCreateModal()">Create Task</button>
-<br><br>
+<div class="create-task-container">
+    <button id="create-task" type="button" onclick="openCreateModal()">Create Task</button>
+</div>
 
 <table>
   <thead>
@@ -396,7 +366,7 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
 </table>
 
 <br>
-<p><a href="projects.php">Back to Projects</a></p>
+<p><a href="projects.php" class="back-link"> < Back to Projects</a></p>
 
 <!-- CREATE / SUBTASK MODAL -->
 <div class="modal-backdrop" id="createModalBackdrop">
@@ -420,7 +390,7 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
         <label for="create_estimated_hours">Estimated Hours:</label>
         <input type="number" name="create_estimated_hours" id="create_estimated_hours" min="0" value="0">
       </div>
-      <button type="submit">Create</button>
+      <button id = "create-task" type="submit">Create</button>
     </form>
   </div>
 </div>
