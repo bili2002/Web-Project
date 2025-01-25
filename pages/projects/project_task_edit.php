@@ -104,9 +104,9 @@ if (!empty($successMsg)) {
 
     <label>Status:</label><br>
     <select name="status">
-        <option value="version 1" <?php if ($linkRow['status'] === 'version 1') echo 'selected'; ?>>Version 1</option>
-        <option value="version 2" <?php if ($linkRow['status'] === 'version 2') echo 'selected'; ?>>Version 2</option>
-        <option value="version 3" <?php if ($linkRow['status'] === 'version 3') echo 'selected'; ?>>Version 3</option>
+        <option value="v1" <?php if ($linkRow['status'] === 'v1') echo 'selected'; ?>>v1</option>
+        <option value="v2" <?php if ($linkRow['status'] === 'v2') echo 'selected'; ?>>v2</option>
+        <option value="v3" <?php if ($linkRow['status'] === 'v3') echo 'selected'; ?>>v3</option>
     </select><br><br>
 
     <button type="submit">Update</button>

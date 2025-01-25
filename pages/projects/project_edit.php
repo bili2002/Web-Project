@@ -79,7 +79,7 @@ $successMsg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
     $newTitle       = $_POST['title']       ?? '';
     $newDescription = $_POST['description'] ?? '';
-    $newStatus      = $_POST['status']      ?? 'version 1';
+    $newStatus      = $_POST['status']      ?? 'v1';
 
     if (!empty($newTitle)) {
         $upd = $conn->prepare("
@@ -255,17 +255,17 @@ foreach ($myPossibleTeams as $mt) {
                     <div class="form-group">
                         <label for="status">Status:</label>
                         <select id="status" name="status">
-                            <option value="version 1" 
-                                <?php if ($project['status'] === 'version 1') echo 'selected'; ?>>
-                                Version 1
+                            <option value="v1" 
+                                <?php if ($project['status'] === 'v1') echo 'selected'; ?>>
+                                v1
                             </option>
-                            <option value="version 2" 
-                                <?php if ($project['status'] === 'version 2') echo 'selected'; ?>>
-                               Version 2
+                            <option value="v2" 
+                                <?php if ($project['status'] === 'v2') echo 'selected'; ?>>
+                               v2
                             </option>
-                            <option value="version 3" 
-                                <?php if ($project['status'] === 'version 3') echo 'selected'; ?>>
-                                Version 3
+                            <option value="v3" 
+                                <?php if ($project['status'] === 'v3') echo 'selected'; ?>>
+                                v3
                             </option>
                         </select>
                     </div>

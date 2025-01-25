@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // subtask => find parent's project
             $projSql = "
-                SELECT upt.project_id
+                SELECT DISTINCT upt.project_id
                 FROM user_project_task upt
                 JOIN tasks t ON upt.task_id = t.id
                 WHERE t.id = ?
@@ -223,7 +223,32 @@ $userRole = $_SESSION['role'] ?? 'user';
 // If admin => see all tasks. Otherwise, filter to projects the user is assigned to.
 if ($userRole === 'admin') {
     $sql = "
-        SELECT
+      SELECT *
+      FROM (
+          SELECT DISTINCT
+            t.id AS task_id,
+            t.parent_id,
+            t.title,
+            t.description,
+            upt.team_estimated_hours,
+            upt.actual_hours,
+            upt.status,
+            p.title AS project_title,
+            upt.id AS link_id
+          FROM user_project_task upt
+          JOIN tasks t      ON upt.task_id    = t.id
+          JOIN projects p   ON upt.project_id = p.id
+      ) AS subquery
+      ORDER BY project_title, task_id;
+    ";
+    $stmt = $conn->query($sql);
+} else {
+    // Non-admin => join through project_team + team_members to ensure we only see
+    // tasks from projects assigned to teams that the user is part of
+    $sql = "
+      SELECT *
+      FROM (
+        SELECT DISTINCT
           t.id AS task_id,
           t.parent_id,
           t.title,
@@ -234,34 +259,13 @@ if ($userRole === 'admin') {
           p.title AS project_title,
           upt.id AS link_id
         FROM user_project_task upt
-        JOIN tasks t      ON upt.task_id    = t.id
-        JOIN projects p   ON upt.project_id = p.id
-        ORDER BY p.id, t.id
-    ";
-    $stmt = $conn->query($sql);
-} else {
-    // Non-admin => join through project_team + team_members to ensure we only see
-    // tasks from projects assigned to teams that the user is part of
-    $sql = "
-    SELECT
-      t.id AS task_id,
-      t.parent_id,
-      t.title,
-      t.description,
-      upt.team_estimated_hours,
-      upt.actual_hours,
-      upt.status,
-      p.title AS project_title,
-      upt.id AS link_id
-
-    FROM user_project_task upt
-    JOIN tasks t         ON upt.task_id = t.id
-    JOIN projects p      ON upt.project_id = p.id
-    -- Ensure user is in a team assigned to that project:
-    JOIN project_team pt ON pt.project_id = p.id
-    JOIN team_members tm ON tm.team_id    = pt.team_id
-    WHERE tm.user_id = ?
-    ORDER BY p.id, t.id
+        JOIN tasks t         ON upt.task_id = t.id
+        JOIN projects p      ON upt.project_id = p.id
+        JOIN project_team pt ON pt.project_id = p.id
+        JOIN team_members tm ON tm.team_id    = pt.team_id
+        WHERE tm.user_id = ?
+      ) AS subquery
+      ORDER BY project_title, task_id;
     ";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $userId);
