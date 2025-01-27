@@ -7,6 +7,8 @@ include '../../includes/db.php';
 $MAX_USER_LENGTH = 32;
 $DB_PREFIX = "w23";
 
+$logFile = __DIR__ . '/db_changes.log';
+
 $projectId = (int)$_GET['id'];
 $userId   = $_SESSION['user_id'];
 $userRole = $_SESSION['role'] ?? 'user';  // could be 'admin', 'team_leader', etc.
@@ -307,6 +309,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   
       if ($allSuccess) {
           $successMsg = "Successfully created DB: $dbName (User: $dbUser).";
+          file_put_contents($logFile, $queriesToRun, FILE_APPEND);
+
           // 4) Update the project record
           $sql = "UPDATE `projects` 
                     SET `db_name` = ?, 
@@ -354,7 +358,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($allSuccess) {
         $successMsg = "Successfully dropped DB '{$dbName}' and user '{$dbUser}'.";
-        
+        file_put_contents($logFile, $dropQueries, FILE_APPEND);
+
         // Now clear them out in the project record if you want:
         $sql = "UPDATE `projects`
                 SET `db_name` = '',
