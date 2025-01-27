@@ -46,7 +46,7 @@ if ($result) {
     while ($row = $result->fetch_assoc()) {
         $pTitle    = $row['project_title']      ?? '';
         $pDesc     = $row['project_desc']       ?? '';
-        $pStatus   = $row['project_status']     ?? 'open';
+        $pStatus   = $row['project_status']     ?? 'v1';
 
         $tTitle    = $row['task_title']         ?? '';
         $tDesc     = $row['task_desc']          ?? '';

@@ -36,7 +36,10 @@ $queries = [
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `title` VARCHAR(255) NOT NULL,
         `description` TEXT,
-        `status` VARCHAR(50) DEFAULT 'open',
+        `status` VARCHAR(50) DEFAULT 'v1',
+        `db_username` VARCHAR(255) NOT NULL DEFAULT '',
+        `db_name` VARCHAR(255) NOT NULL DEFAULT '',
+        `db_password` VARCHAR(255) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB",
 

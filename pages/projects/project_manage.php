@@ -59,7 +59,7 @@ $projectId = (int)$_GET['id'];
 
 // Check project existence
 // 1) Update your SELECT query
-$stmtProj = $conn->prepare("SELECT id, title, status FROM projects WHERE id=? LIMIT 1");
+$stmtProj = $conn->prepare("SELECT id, title, status, db_name FROM projects WHERE id=? LIMIT 1");
 $stmtProj->bind_param("i", $projectId);
 $stmtProj->execute();
 $resProj = $stmtProj->get_result();
@@ -261,13 +261,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       // 4) Build your custom DB name: w23_fn1_fn2_..._fnN_projectTitle_status
       $dbName = "w23_{$facultyPart}_{$projTitleSlug}_{$statusSlug}";
-      
-      if (strlen($dbName) > 32) {
-          $dbName = substr($dbName, 0, 32);
-      }
     
-      $dbUser = $dbName;      // or however you prefer
-      $dbPassword = $dbName;  // or a more secure password
+      $dbUser = $dbName;
+      if (strlen($dbUser) > 32) {
+          $dbUser = substr($dbUser, 0, 32);
+      }
+      $dbPassword = $dbName; 
       
       // 6) Example set of queries
       $queriesToRun = [
@@ -355,7 +354,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $facultyPart = implode("_", $facultyNumbers);
       $dbName      = "w23_{$facultyPart}_{$projTitleSlug}_v1";
+
+        
       $dbUser      = $dbName; // or however you set it
+      if (strlen($dbUser) > 32) {
+          $dbUser = substr($dbUser, 0, 32);
+      }
   
       // 3) Prepare your DROP queries
       $dropQueries = [
@@ -512,7 +516,7 @@ function printTasksDFS($parentId, $level, $tasksByParent) {
     <link rel="stylesheet" href="../../css/projects/project_manage.css">
 </head>
 <body>
-<h1>Manage Tasks for Project: <?php echo htmlspecialchars($project['title']); ?></h1>
+<h1>Manage Tasks for Project: <?php echo htmlspecialchars($project['title']); ?> (<?php echo htmlspecialchars($project['db_name']); ?>)</h1>
 
 <?php
 if ($errorMsg)   echo "<p class='error'>$errorMsg</p>";
