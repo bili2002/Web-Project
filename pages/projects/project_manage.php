@@ -4,6 +4,9 @@ session_start();
 require '../../includes/auth_check.php';  // or your login-check
 include '../../includes/db.php';
 
+$MAX_USER_LENGTH = 32;
+$DB_PREFIX = "w23";
+
 $projectId = (int)$_GET['id'];
 $userId   = $_SESSION['user_id'];
 $userRole = $_SESSION['role'] ?? 'user';  // could be 'admin', 'team_leader', etc.
@@ -59,7 +62,7 @@ $projectId = (int)$_GET['id'];
 
 // Check project existence
 // 1) Update your SELECT query
-$stmtProj = $conn->prepare("SELECT id, title, status, db_name FROM projects WHERE id=? LIMIT 1");
+$stmtProj = $conn->prepare("SELECT id, title, status, db_name, db_username, db_password FROM projects WHERE id=? LIMIT 1");
 $stmtProj->bind_param("i", $projectId);
 $stmtProj->execute();
 $resProj = $stmtProj->get_result();
@@ -69,16 +72,52 @@ if ($resProj->num_rows === 0) {
 $project = $resProj->fetch_assoc();
 $stmtProj->close();
 
-$rawStatus = $project['status'] ?? 'version1'; // fallback if null
+$rawStatus = $project['status'] ?? 'v1'; // fallback if null
 $rawStatus = strtolower($rawStatus);
 
 $statusSlug = preg_replace("/[^A-Za-z0-9]+/", "", $rawStatus);
 if (empty($statusSlug)) {
-    $statusSlug = "version1";
+    $statusSlug = "v1";
 }
 
 $errorMsg   = '';
 $successMsg = '';
+
+
+$facultyNumbers = [];
+$sqlFN = "
+    SELECT DISTINCT u.faculty_number
+    FROM users u
+    JOIN team_members tm ON tm.user_id = u.id
+    JOIN project_team pt ON pt.team_id = tm.team_id
+    WHERE pt.project_id = ?
+";
+$stmtFN = $conn->prepare($sqlFN);
+$stmtFN->bind_param("i", $projectId);
+$stmtFN->execute();
+$resFN = $stmtFN->get_result();
+while ($rowFN = $resFN->fetch_assoc()) {
+    $facultyNumbers[] = $rowFN['faculty_number'];
+}
+$stmtFN->close();
+
+sort($facultyNumbers);
+$facultyPart = implode("_", $facultyNumbers);
+
+// Slugify project title
+$projTitleSlug = preg_replace("/[^A-Za-z0-9]+/", "", $project['title']);
+if (empty($projTitleSlug)) {
+    $projTitleSlug = "project";  
+}
+
+// Slugify status
+$rawStatus = strtolower($project['status'] ?? '');
+if (empty($rawStatus)) {
+    $rawStatus = "v1";
+}
+
+// Now build your fallback name
+$fallbackDbName = "{$DB_PREFIX}_{$facultyPart}_{$projTitleSlug}_{$rawStatus}";
 
 /**
  * 2) Handle CREATE / EDIT / UPDATE STATUS / DELETE
@@ -215,93 +254,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     elseif ($crudAction === 'create_db') {
       if ($userRole !== 'admin') {
-        die("No permission to create DB.");
-      }
-      // 1) Collect faculty numbers for all users in any team associated with this project
-      $facultyNumbers = [];
-      $sqlFN = "
-          SELECT DISTINCT u.faculty_number
-          FROM users u
-          JOIN team_members tm ON tm.user_id = u.id
-          JOIN project_team pt ON pt.team_id = tm.team_id
-          WHERE pt.project_id = ?
-      ";
-      $stmtFN = $conn->prepare($sqlFN);
-      $stmtFN->bind_param("i", $projectId);
-      $stmtFN->execute();
-      $resFN = $stmtFN->get_result();
-      while ($rowFN = $resFN->fetch_assoc()) {
-          $facultyNumbers[] = $rowFN['faculty_number'];
-      }
-      $stmtFN->close();
-  
-      // 2) Sort or keep them in the order you like
-      //    Sorting them can avoid random ordering
-      sort($facultyNumbers);
-      
-      if (empty($facultyNumbers)) {
-          $errorMsg = "No team members found for this project. Cannot build DB name.";
-          return;
+          die("No permission to create DB.");
       }
   
-      // 3) Sanitize project title for use in DB name (remove spaces and special chars)
-      $projTitleSlug = preg_replace("/[^A-Za-z0-9]+/", "", $project['title']);
-      if (empty($projTitleSlug)) {
-          $projTitleSlug = "project";  // fallback if title is all special chars
-      }
-  
-      $facultyPart = implode("_", $facultyNumbers);
-      
-      $rawStatus = $project['status'] ?? ''; // fallback to empty string if not set
-      $rawStatus = strtolower((string)$rawStatus);
+      // 0) Read the optional custom DB name (if provided)
+      $customDbInput = trim($_POST['custom_db_name'] ?? '');
 
-      if (empty($rawStatus)) {
-          $rawStatus = "version1";
+      // 1) If admin provided a custom name, sanitize and use it. Otherwise, use fallback.
+      if (!empty($customDbInput)) {
+          // Example: only allow [A-Za-z0-9_] in the custom name
+          $dbName = preg_replace("/[^A-Za-z0-9_]+/", "", $customDbInput);
+          if (empty($dbName)) {
+              $dbName = $fallbackDbName;
+          }
+      } else {
+          $dbName = $fallbackDbName;
       }
-
-      // 4) Build your custom DB name: w23_fn1_fn2_..._fnN_projectTitle_status
-      $dbName = "w23_{$facultyPart}_{$projTitleSlug}_{$statusSlug}";
-    
+  
+      // 2) Build the username & password from $dbName
       $dbUser = $dbName;
-      if (strlen($dbUser) > 32) {
-          $dbUser = substr($dbUser, 0, 32);
+      if (strlen($dbUser) > $MAX_USER_LENGTH) {
+          $dbUser = substr($dbUser, 0, $MAX_USER_LENGTH);
       }
-      $dbPassword = $dbName; 
-      
-      // 6) Example set of queries
+      $dbPassword = $dbName; // or random, up to you
+  
+      // 3) The rest is the same: run your queries
       $queriesToRun = [
-          // CREATE USER
-          "CREATE USER IF NOT EXISTS `{$dbUser}`@`localhost`
-          IDENTIFIED BY '{$dbPassword}';",
-      
-          // GRANT USAGE only, no additional clauses
+          "CREATE USER IF NOT EXISTS `{$dbUser}`@`localhost` IDENTIFIED BY '{$dbPassword}';",
           "GRANT USAGE ON *.* TO `{$dbUser}`@`localhost`;",
-      
-          // CREATE DATABASE
-          "CREATE DATABASE IF NOT EXISTS `{$dbName}`
-          CHARACTER SET utf8mb4
-          COLLATE utf8mb4_unicode_ci;",
-      
-          // GRANT PRIVILEGES on the new DB
-          "GRANT ALL PRIVILEGES ON `{$dbName}`.*
-          TO `{$dbUser}`@`localhost`
-          WITH GRANT OPTION;",
-      
-          // Create table
+          "CREATE DATABASE IF NOT EXISTS `{$dbName}` 
+            CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
+          "GRANT ALL PRIVILEGES ON `{$dbName}`.* 
+            TO `{$dbUser}`@`localhost` WITH GRANT OPTION;",
           "CREATE TABLE `{$dbName}`.`tbl_{$dbName}` (
               id MEDIUMINT NOT NULL AUTO_INCREMENT,
               name CHAR(30) NOT NULL,
               command_text TEXT,
               insert_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (id)
-          );",
-      
-          // Insert row
+           );",
           "INSERT INTO `{$dbName}`.`tbl_{$dbName}` (name) VALUES ('{$rawStatus}');"
       ];
-    
-      
-      // 7) Execute them in a loop
+  
       $allSuccess = true;
       foreach ($queriesToRun as $q) {
           if (!$conn->query($q)) {
@@ -310,78 +304,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               break;
           }
       }
-      
+  
       if ($allSuccess) {
-          $successMsg = "Successfully created database: $dbName and user: $dbUser.";
-      }
-    }
-   elseif ($crudAction === 'drop_db') {
-      if ($userRole !== 'admin') {
-          die("No permission to drop DB.");
-      }
-  
-      // 1) Collect the same faculty numbers & build the same DB name
-      $facultyNumbers = [];
-      $sqlFN = "
-          SELECT DISTINCT u.faculty_number
-          FROM users u
-          JOIN team_members tm ON tm.user_id = u.id
-          JOIN project_team pt ON pt.team_id = tm.team_id
-          WHERE pt.project_id = ?
-      ";
-      $stmtFN = $conn->prepare($sqlFN);
-      $stmtFN->bind_param("i", $projectId);
-      $stmtFN->execute();
-      $resFN = $stmtFN->get_result();
-      while ($rowFN = $resFN->fetch_assoc()) {
-          $facultyNumbers[] = $rowFN['faculty_number'];
-      }
-      $stmtFN->close();
-  
-      // Sort or not (up to you)
-      sort($facultyNumbers);
-  
-      // If no members => handle gracefully
-      if (empty($facultyNumbers)) {
-          $errorMsg = "No team members found; cannot determine DB name.";
-          return;
-      }
-  
-      // 2) Build DB name + user exactly as you did in "create_db"
-      $projTitleSlug = preg_replace("/[^A-Za-z0-9]+/", "", $project['title']);
-      if (empty($projTitleSlug)) {
-          $projTitleSlug = "project";
-      }
-      $facultyPart = implode("_", $facultyNumbers);
-      $dbName      = "w23_{$facultyPart}_{$projTitleSlug}_v1";
-
-        
-      $dbUser      = $dbName; // or however you set it
-      if (strlen($dbUser) > 32) {
-          $dbUser = substr($dbUser, 0, 32);
-      }
-  
-      // 3) Prepare your DROP queries
-      $dropQueries = [
-          // 1) Drop user if it exists
-          "DROP USER IF EXISTS `{$dbUser}`@`localhost`;",
-          // 2) Drop database if it exists
-          "DROP DATABASE IF EXISTS `{$dbName}`;"
-      ];
-  
-      // 4) Execute them in a loop
-      $allSuccess = true;
-      foreach ($dropQueries as $q) {
-          if (!$conn->query($q)) {
-              $allSuccess = false;
-              $errorMsg = "Error dropping DB/User: " . $conn->error . " <br> Query: $q";
-              break;
+          $successMsg = "Successfully created DB: $dbName (User: $dbUser).";
+          // 4) Update the project record
+          $sql = "UPDATE `projects` 
+                    SET `db_name` = ?, 
+                        `db_username` = ?, 
+                        `db_password` = ? 
+                  WHERE `id` = ?";
+          $stmt = $conn->prepare($sql);
+          if ($stmt) {
+              $stmt->bind_param("sssi", $dbName, $dbUser, $dbPassword, $projectId);
+              if (!$stmt->execute()) {
+                  $errorMsg .= "<br>Error updating project: " . $stmt->error;
+              }
+              $stmt->close();
+          } else {
+              $errorMsg .= "<br>Error preparing statement: " . $conn->error;
           }
       }
-  
-      if ($allSuccess) {
-          $successMsg = "Successfully dropped database '{$dbName}' and user '{$dbUser}'.";
-      }
+  }  
+  elseif ($crudAction === 'drop_db') {
+    if ($userRole !== 'admin') {
+        die("No permission to drop DB.");
+    }
+
+    $dbName = $project['db_name'];
+    $dbUser = $project['db_username'];
+
+    if (empty($dbName) || empty($dbUser)) {
+        $errorMsg = "Project does not have a DB name/user stored, cannot drop.";
+        return;
+    }
+
+    $dropQueries = [
+        "DROP USER IF EXISTS `{$dbUser}`@`localhost`;",
+        "DROP DATABASE IF EXISTS `{$dbName}`;"
+    ];
+
+    $allSuccess = true;
+    foreach ($dropQueries as $q) {
+        if (!$conn->query($q)) {
+            $allSuccess = false;
+            $errorMsg = "Error dropping DB/User: " . $conn->error . " <br> Query: $q";
+            break;
+        }
+    }
+
+    if ($allSuccess) {
+        $successMsg = "Successfully dropped DB '{$dbName}' and user '{$dbUser}'.";
+        
+        // Now clear them out in the project record if you want:
+        $sql = "UPDATE `projects`
+                SET `db_name` = '',
+                    `db_username` = '',
+                    `db_password` = ''
+                WHERE `id` = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $projectId);
+            if (!$stmt->execute()) {
+                $errorMsg .= "<br>Error updating project: " . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            $errorMsg .= "<br>Error preparing statement: " . $conn->error;
+        }
+    }
   }
 }
 
@@ -525,23 +515,45 @@ if ($successMsg) echo "<p class='success'>$successMsg</p>";
 
 <div class="create-task-container">
     <button id="create-task" type="button" onclick="openCreateModal()">Create Task</button>
-    <?php if ($userRole === 'admin') : ?>
-      <!-- Create DB button -->
-      <form method="post" style="display:inline;">
-        <input type="hidden" name="crud_action" value="create_db">
-        <button type="submit" onclick="return confirm('Are you sure you want to create a new database?')">
-          Create Custom DB
-        </button>
-      </form>
 
-      <!-- Drop DB button -->
-      <form method="post" style="display:inline;">
-        <input type="hidden" name="crud_action" value="drop_db">
-        <button type="submit" onclick="return confirm('Are you sure you want to DROP the database and user?')">
-          Drop Custom DB
-        </button>
-      </form>
+    <?php if ($userRole === 'admin') : ?>
+      <div style="margin-top: 1rem;">
+        <!-- Instead of a direct form submission, we use a button to open the modal -->
+        <button type="button" onclick="openCreateDbModal()">Create Custom DB</button>
+
+        <!-- Existing Drop DB form (unchanged) -->
+        <form method="post" style="display:inline;">
+          <input type="hidden" name="crud_action" value="drop_db">
+          <button type="submit" onclick="return confirm('Are you sure you want to DROP the database and user?'); setTimeout(function() { location.reload(); }, 2000);">
+            Drop Custom DB
+          </button>
+        </form>
+      </div>
+
+      <!-- The Modal Backdrop -->
+      <div class="modal-backdrop" id="createDbModal" style="display: none;">
+        <div class="modal">
+          <!-- 'X' close button -->
+          <span class="close-btn" onclick="closeCreateDbModal()">×</span>
+          <h2>Create Database</h2>
+
+          <!-- The form inside the modal -->
+          <form method="post" id="createDbForm">
+            <input type="hidden" name="crud_action" value="create_db">
+
+            <label for="custom_db_name">Name:</label>
+            <input type="text" name="custom_db_name" id="custom_db_name" value="" style="width: 300px;">
+
+            <div style="margin-top: 1rem;">
+              <button type="button" onclick="submitCreateDbForm()">Create</button>
+              <button type="button" onclick="closeCreateDbModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
     <?php endif; ?>
+
+
 </div>
 
 
@@ -680,6 +692,26 @@ function handleStatusChange(linkId){
     hiddenFld.value = 0;
   }
   return true;
+}
+
+var fallbackDbName = "<?php echo $fallbackDbName; ?>";
+
+function openCreateDbModal() {
+  if ("<?php echo $project['db_name'] != '' ? 'true' : 'false'; ?>" === "true") {
+    alert("Database already exists!");
+  }
+  else {
+    document.getElementById('custom_db_name').value = fallbackDbName;
+    document.getElementById('createDbModal').style.display = 'block';
+  }
+}
+
+function closeCreateDbModal() {
+  document.getElementById('createDbModal').style.display = 'none';
+}
+
+function submitCreateDbForm() {
+  document.getElementById('createDbForm').submit();
 }
 </script>
 
