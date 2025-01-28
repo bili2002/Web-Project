@@ -44,7 +44,7 @@ $stmtT->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_project'])) {
     $projTitle       = $_POST['proj_title']       ?? '';
     $projDescription = $_POST['proj_description'] ?? '';
-    $projStatus      = $_POST['proj_status']      ?? 'open';
+    $projStatus      = $_POST['proj_status']      ?? 'v1';
 
     // The selected team IDs from the multi-select
     $selectedTeamIds = isset($_POST['team_ids']) ? $_POST['team_ids'] : [];
