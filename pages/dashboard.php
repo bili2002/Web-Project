@@ -80,6 +80,15 @@ $stmtTeams->close();
 <body>
 <h1>Welcome to Your Dashboard</h1>
 
+<!-- Basic nav links -->
+<section id = "basic-links">
+<a href="teams/teams.php">Manage Teams</a> 
+<a href="projects/projects.php">Projects</a> 
+<a href="tasks/tasks.php">Tasks</a>  
+<a href="auth/logout.php">Logout</a>
+    </section>
+
+
 <!-- 1) Tasks assigned to the user -->
 <h2>Your Tasks</h2>
 <section>
@@ -139,14 +148,6 @@ $stmtTeams->close();
         <p>You are not a member of any teams yet.</p>
     <?php endif; ?>
 </section>
-
-<!-- Basic nav links -->
- <section id = "basic-links">
-<a href="teams/teams.php">Manage Teams</a> 
-<a href="projects/projects.php">Projects</a> 
-<a href="tasks/tasks.php">Tasks</a>  
-<a href="auth/logout.php">Logout</a>
-    </section>
 
 </body>
 </html>
